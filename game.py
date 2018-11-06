@@ -2,7 +2,14 @@ import pygame
 
 
 class Game(object):
-    def main(self, screen):
+
+    def __init__(self):
+        super(Game, self).__init__()
+        pygame.init()
+        pygame.display.set_caption('PyGame Demo')
+        self.screen = pygame.display.set_mode((640, 480))
+
+    def main(self):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -11,10 +18,11 @@ class Game(object):
                         and event.key == pygame.K_ESCAPE):
                     return
 
+    @classmethod
+    def start(cls):
+        game = cls()
+        game.main()
+
 
 if __name__ == '__main__':
-    pygame.init()
-    pygame.display.set_caption('PyGame Demo')
-    screen = pygame.display.set_mode((640, 480))
-    game = Game()
-    game.main(screen)
+    Game.start()
