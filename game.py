@@ -1,6 +1,26 @@
 import pygame
 
 
+class Player(pygame.sprite.Sprite):
+
+    def __init__(self, *groups):
+        super(Player, self).__init__(*groups)
+        self.image = pygame.image.load('assets/player.png')
+        self.rect = pygame.rect.Rect((320, 240), self.image.get_size())
+
+    def update(self):
+        key = pygame.key.get_pressed()
+
+        if key[pygame.K_LEFT]:
+            self.rect.x -= 10
+        if key[pygame.K_RIGHT]:
+            self.rect.x += 10
+        if key[pygame.K_UP]:
+            self.rect.y -= 10
+        if key[pygame.K_DOWN]:
+            self.rect.y += 10
+
+
 class Game(object):
 
     def __init__(self):
@@ -11,8 +31,8 @@ class Game(object):
 
     def main(self):
         clock = pygame.time.Clock()
-        image = pygame.image.load('assets/player.png')
-        position = [320, 240]
+        sprites = pygame.sprite.Group()
+        self.player = Player(sprites)
 
         while True:
             clock.tick(30)
@@ -24,18 +44,9 @@ class Game(object):
                         and event.key == pygame.K_ESCAPE):
                     return
 
-            key = pygame.key.get_pressed()
-            if key[pygame.K_LEFT]:
-                position[0] -= 10
-            if key[pygame.K_RIGHT]:
-                position[0] += 10
-            if key[pygame.K_UP]:
-                position[1] -= 10
-            if key[pygame.K_DOWN]:
-                position[1] += 10
-
             self.screen.fill((200, 200, 200))
-            self.screen.blit(image, tuple(position))
+            sprites.update()
+            sprites.draw(self.screen)
             pygame.display.flip()
 
     @classmethod
