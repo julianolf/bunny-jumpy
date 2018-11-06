@@ -8,17 +8,17 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.image.load('assets/player.png')
         self.rect = pygame.rect.Rect((320, 240), self.image.get_size())
 
-    def update(self):
+    def update(self, tick):
         key = pygame.key.get_pressed()
 
         if key[pygame.K_LEFT]:
-            self.rect.x -= 10
+            self.rect.x -= 300 * tick
         if key[pygame.K_RIGHT]:
-            self.rect.x += 10
+            self.rect.x += 300 * tick
         if key[pygame.K_UP]:
-            self.rect.y -= 10
+            self.rect.y -= 300 * tick
         if key[pygame.K_DOWN]:
-            self.rect.y += 10
+            self.rect.y += 300 * tick
 
 
 class Game(object):
@@ -35,7 +35,10 @@ class Game(object):
         self.player = Player(sprites)
 
         while True:
-            clock.tick(30)
+            # force 30fps
+            # getting the current frame rate
+            # and converting to seconds
+            tick = clock.tick(30) / 1000
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -45,7 +48,7 @@ class Game(object):
                     return
 
             self.screen.fill((200, 200, 200))
-            sprites.update()
+            sprites.update(tick)
             sprites.draw(self.screen)
             pygame.display.flip()
 
