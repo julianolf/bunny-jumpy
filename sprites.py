@@ -70,13 +70,21 @@ class Player(pygame.sprite.Sprite):
 
         # motion equation
         self.vel += self.acc
+        if abs(self.vel.x) < 0.1:
+            self.vel.x = 0
         self.pos += self.vel + settings.PLAYER_ACC * self.acc
 
         # wrap around the sides of the screen
-        if self.pos.x > settings.WIDTH:
-            self.pos.x = 0
-        if self.pos.x < 0:
-            self.pos.x = settings.WIDTH
+        if self.pos.x > settings.WIDTH + (self.rect.width / 2):
+            self.pos.x = 0 - (self.rect.width / 2)
+        if self.pos.x < 0 - (self.rect.width / 2):
+            self.pos.x = settings.WIDTH + (self.rect.width / 2)
+
+        # update walking status according to the x speed
+        if self.vel.x != 0:
+            self.walking = True
+        else:
+            self.walking = False
 
     def jump(self):
         self.rect.y += 1
@@ -87,6 +95,19 @@ class Player(pygame.sprite.Sprite):
 
     def animate(self):
         now = pygame.time.get_ticks()
+        if self.walking:
+            if now - self.last_update > 180:
+                self.last_update = now
+                self.current_frame = (
+                    (self.current_frame + 1) % len(self.walk_frames_l))
+                bottom = self.rect.bottom
+                if self.vel.x > 0:
+                    self.image = self.walk_frames_r[self.current_frame]
+                elif self.vel.x < 0:
+                    self.image = self.walk_frames_l[self.current_frame]
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+
         if not self.jumping and not self.walking:
             if now - self.last_update > 350:
                 self.last_update = now
@@ -98,8 +119,6 @@ class Player(pygame.sprite.Sprite):
                 self.rect.bottom = bottom
 
     def update(self):
-        self.animate()
-
         # reset acceleration and gravity values
         self.acc = Vector2(0, settings.GRAVITY)
 
@@ -108,6 +127,9 @@ class Player(pygame.sprite.Sprite):
 
         # move left or right according to players command
         self.walk()
+
+        # animate player sprite
+        self.animate()
 
         # update player position
         self.rect.midbottom = self.pos
