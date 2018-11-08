@@ -1,6 +1,6 @@
 import pygame
 import settings
-from sprites import Player, Platform
+from sprites import Spritesheet, Player, Platform
 from os import path
 
 
@@ -17,7 +17,7 @@ class Game(object):
         self.running = True
         self.playing = False
         self.font_name = pygame.font.match_font(settings.FONT_NAME)
-        self.load_highscore()
+        self.load_data()
 
     def new(self):
         self.sprites = pygame.sprite.Group()
@@ -162,14 +162,21 @@ class Game(object):
                 if event.type == pygame.KEYDOWN:
                     return
 
-    def load_highscore(self):
-        self._hs_file_path = path.join(
-            path.dirname(__file__), settings.SCORE_FILE)
+    def load_data(self):
+        cur_dir = path.dirname(__file__)
+
+        # load high score saving file
+        self._hs_file_path = path.join(cur_dir, settings.SCORE_FILE)
         try:
             f = open(self._hs_file_path, 'r')
             self.highscore = float(f.read())
         except Exception:
             self.highscore = 0.
+
+        # load spritesheet
+        assets_path = path.join(cur_dir, 'assets')
+        self.spritesheet = Spritesheet(
+            path.join(assets_path, settings.SPRITESHEET))
 
     def save_highscore(self):
         with open(self._hs_file_path, 'w') as f:

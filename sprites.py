@@ -4,19 +4,51 @@ import settings
 from pygame.math import Vector2
 
 
+class Spritesheet(object):
+    def __init__(self, filename):
+        super(Spritesheet, self).__init__()
+        self.spritesheet = pygame.image.load(filename).convert()
+
+    def get_image(self, x, y, width, height):
+        image = pygame.Surface((width, height))
+        image.blit(self.spritesheet, (0, 0), (x, y, width, height))
+        image = pygame.transform.scale(image, (width//2, height//2))
+        image.set_colorkey(settings.BLACK)
+        return image
+
+
 class Player(pygame.sprite.Sprite):
 
     def __init__(self, game):
         super(Player, self).__init__()
         self.game = game
-        self.image = pygame.Surface((settings.TILE_SIZE, settings.TILE_SIZE))
-        self.image.fill(settings.YELLOW)
+        self.walking = False
+        self.jumping = False
+        self.current_frame = 0
+        self.last_update = 0
+        self.load_images()
+        self.image = self.standing_frames[self.current_frame]
         self.rect = self.image.get_rect()
         self.rect.center = (settings.WIDTH / 2, settings.HEIGHT / 2)
         self.pos = Vector2(settings.WIDTH / 2, settings.HEIGHT / 2)
         self.vel = Vector2(0, 0)
         self.acc = Vector2(0, 0)
         self.score = 0.
+
+    def load_images(self):
+        self.standing_frames = [
+            self.game.spritesheet.get_image(*t)
+            for t in ((614, 1063, 120, 191), (690, 406, 120, 201))
+        ]
+        self.walk_frames_r = [
+            self.game.spritesheet.get_image(*t)
+            for t in ((678, 860, 120, 201), (692, 1458, 120, 207))
+        ]
+        self.walk_frames_l = []
+        for frame in self.walk_frames_r:
+            self.walk_frames_l.append(
+                pygame.transform.flip(frame, True, False))
+        self.jump_frame = self.game.spritesheet.get_image(416, 1660, 150, 181)
 
     def standing(self):
         if self.vel.y > 0:
@@ -53,7 +85,21 @@ class Player(pygame.sprite.Sprite):
         if hits:
             self.vel.y = settings.PLAYER_STRENGTH
 
+    def animate(self):
+        now = pygame.time.get_ticks()
+        if not self.jumping and not self.walking:
+            if now - self.last_update > 350:
+                self.last_update = now
+                self.current_frame = (
+                    (self.current_frame + 1) % len(self.standing_frames))
+                bottom = self.rect.bottom
+                self.image = self.standing_frames[self.current_frame]
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+
     def update(self):
+        self.animate()
+
         # reset acceleration and gravity values
         self.acc = Vector2(0, settings.GRAVITY)
 

@@ -2,6 +2,7 @@
 TITLE = 'Jumpy!'
 FONT_NAME = 'arial'
 SCORE_FILE = '.highestscore'
+SPRITESHEET = 'spritesheet.png'
 
 # screen and sprites
 FPS = 60
