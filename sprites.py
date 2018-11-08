@@ -29,8 +29,8 @@ class Player(pygame.sprite.Sprite):
         self.load_images()
         self.image = self.standing_frames[self.current_frame]
         self.rect = self.image.get_rect()
-        self.rect.center = (settings.WIDTH / 2, settings.HEIGHT / 2)
-        self.pos = Vector2(settings.WIDTH / 2, settings.HEIGHT / 2)
+        self.rect.center = (50, settings.HEIGHT * 3 / 4)
+        self.pos = Vector2(50, settings.HEIGHT * 3 / 4)
         self.vel = Vector2(0, 0)
         self.acc = Vector2(0, 0)
         self.score = 0.
@@ -48,15 +48,21 @@ class Player(pygame.sprite.Sprite):
         for frame in self.walk_frames_r:
             self.walk_frames_l.append(
                 pygame.transform.flip(frame, True, False))
-        self.jump_frame = self.game.spritesheet.get_image(416, 1660, 150, 181)
+        self.jump_frame = self.game.spritesheet.get_image(382, 763, 150, 181)
 
     def standing(self):
         if self.vel.y > 0:
-            for hit in pygame.sprite.spritecollide(
-                    self, self.game.platforms, False):
-                self.pos.y = hit.rect.top
-                self.vel.y = 0
-                break
+            hits = pygame.sprite.spritecollide(
+                self, self.game.platforms, False)
+            if hits:
+                lowest = hits[0]
+                for hit in hits:
+                    if hit.rect.bottom > lowest.rect.bottom:
+                        lowest = hit
+                if self.pos.y < lowest.rect.centery:
+                    self.pos.y = lowest.rect.top
+                    self.vel.y = 0
+                    self.jumping = False
 
     def walk(self):
         key = pygame.key.get_pressed()
@@ -87,14 +93,29 @@ class Player(pygame.sprite.Sprite):
             self.walking = False
 
     def jump(self):
-        self.rect.y += 1
+        self.rect.y += 2
         hits = pygame.sprite.spritecollide(self, self.game.platforms, False)
-        self.rect.y -= 1
-        if hits:
+        self.rect.y -= 2
+        if hits and not self.jumping:
+            self.jumping = True
             self.vel.y = settings.PLAYER_STRENGTH
+
+    def cut_jump(self):
+        if self.jumping:
+            if self.vel.y < -6:
+                self.vel.y = -6
 
     def animate(self):
         now = pygame.time.get_ticks()
+
+        if self.jumping:
+            if now - self.last_update > 100:
+                self.last_update = now
+                bottom = self.rect.bottom
+                self.image = self.jump_frame
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+
         if self.walking:
             if now - self.last_update > 180:
                 self.last_update = now
@@ -109,7 +130,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.bottom = bottom
 
         if not self.jumping and not self.walking:
-            if now - self.last_update > 350:
+            if now - self.last_update > 250:
                 self.last_update = now
                 self.current_frame = (
                     (self.current_frame + 1) % len(self.standing_frames))
@@ -136,7 +157,7 @@ class Player(pygame.sprite.Sprite):
 
         # when player gets close to the top initiate the view scrolling
         if self.rect.top <= settings.HEIGHT / 4:
-            self.game.scroll(abs(self.vel.y))
+            self.game.scroll(max(abs(self.vel.y), 2))
 
         # if the player falls the game is over
         if self.rect.bottom > settings.HEIGHT:
@@ -145,28 +166,15 @@ class Player(pygame.sprite.Sprite):
 
 class Platform(pygame.sprite.Sprite):
 
-    def __init__(self, size=(0, 0), pos=(0, 0)):
+    def __init__(self, game, pos=None):
         super(Platform, self).__init__()
-        self.image = pygame.Surface(size)
-        self.image.fill(settings.GREEN)
+        self.game = game
+        image_info = random.choice([(0, 288, 380, 94), (213, 1662, 201, 100)])
+        self.image = self.game.spritesheet.get_image(*image_info)
         self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = pos
-
-    @classmethod
-    def random(cls):
-        size = (
-            random.randrange(
-                settings.TILE_SIZE * 4,
-                settings.WIDTH - (settings.TILE_SIZE * 6),
-                settings.TILE_SIZE
-            ),
-            settings.TILE_SIZE
-        )
-        pos = (
-            random.randrange(0, settings.WIDTH - size[0], settings.TILE_SIZE),
-            random.randrange(
-                -(settings.TILE_SIZE * 2),
-                -settings.TILE_SIZE
+        if not pos:
+            pos = (
+                random.randrange(0, settings.WIDTH - self.rect.width),
+                random.randrange(-64, -32)
             )
-        )
-        return cls(size=size, pos=pos)
+        self.rect.x, self.rect.y = pos

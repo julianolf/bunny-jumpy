@@ -49,6 +49,9 @@ class Game(object):
                     self.running = False
                 if event.key == pygame.K_SPACE:
                     self.player.jump()
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    self.player.cut_jump()
 
     def update(self):
         self.sprites.update()
@@ -60,6 +63,7 @@ class Game(object):
     def draw(self):
         self.screen.fill(settings.BGCOLOR)
         self.sprites.draw(self.screen)
+        self.screen.blit(self.player.image, self.player.rect)
         self.draw_text(
             ('%.2f ft' % self.player.score), 18, settings.WHITE,
             (settings.WIDTH / 2, 15))
@@ -77,15 +81,15 @@ class Game(object):
         if specs:
             if type(specs) == list:
                 for spec in specs:
-                    platforms.append(Platform(**spec))
+                    platforms.append(Platform(self, **spec))
             elif type(specs) == dict:
-                platforms.append(Platform(**specs))
+                platforms.append(Platform(self, **specs))
         else:
             if amount:
                 for _ in range(amount):
-                    platforms.append(Platform.random())
+                    platforms.append(Platform(self))
             else:
-                platforms.append(Platform.random())
+                platforms.append(Platform(self))
         for plat in platforms:
             self.platforms.add(plat)
             self.sprites.add(plat)
