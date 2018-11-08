@@ -55,7 +55,7 @@ class Game(object):
             self.build_platform(amount=missing)
 
     def draw(self):
-        self.screen.fill(settings.BLACK)
+        self.screen.fill(settings.BGCOLOR)
         self.sprites.draw(self.screen)
         self.draw_text(
             str(self.player.score), 22, settings.WHITE,
@@ -95,9 +95,6 @@ class Game(object):
                 plat.kill()
                 self.player.score += 10
 
-    def start(self):
-        pass
-
     def over(self):
         for sprite in self.sprites:
             sprite.rect.y -= max(self.player.vel.y, 10)
@@ -105,3 +102,45 @@ class Game(object):
                 sprite.kill()
         if len(self.platforms) == 0:
             self.playing = False
+            self.over_screen()
+
+    def splash_screen(self):
+        self.screen.fill(settings.BGCOLOR)
+        self.draw_text(
+            settings.TITLE, 50, settings.WHITE,
+            (settings.WIDTH/2, settings.HEIGHT/4))
+        self.draw_text(
+            '←   → move', 16, settings.WHITE,
+            (settings.WIDTH/2, settings.HEIGHT/2))
+        self.draw_text(
+            '[space] jump', 16, settings.WHITE,
+            (settings.WIDTH/2, settings.HEIGHT/2+40))
+        self.draw_text(
+            'Press any key to start', 16, settings.WHITE,
+            (settings.WIDTH/2, settings.HEIGHT*3/4))
+        pygame.display.flip()
+        self.wait_for_key()
+
+    def over_screen(self):
+        self.screen.fill(settings.BGCOLOR)
+        self.draw_text(
+            'GAME OVER', 50, settings.WHITE,
+            (settings.WIDTH/2, settings.HEIGHT/4))
+        self.draw_text(
+            f'Score: {self.player.score}', 16, settings.WHITE,
+            (settings.WIDTH/2, settings.HEIGHT/2))
+        self.draw_text(
+            'Press any key to start again', 16, settings.WHITE,
+            (settings.WIDTH/2, settings.HEIGHT*3/4))
+        pygame.display.flip()
+        self.wait_for_key()
+
+    def wait_for_key(self):
+        while True:
+            self.clock.tick(settings.FPS)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    return
+                if event.type == pygame.KEYDOWN:
+                    return
