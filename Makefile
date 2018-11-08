@@ -1,4 +1,4 @@
 .PHONY: run
 
 run:
-	pipenv run python game.py
+	pipenv run python main.py

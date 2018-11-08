@@ -1,48 +1,6 @@
 import pygame
-
-_TSIZE = 16
-_SWIDTH = 640
-_SHEIGHT = 480
-
-
-class Player(pygame.sprite.Sprite):
-
-    def __init__(self, *groups):
-        super(Player, self).__init__(*groups)
-        self.image = pygame.image.load('assets/player.png')
-        self.rect = pygame.rect.Rect((320, 240), self.image.get_size())
-        self.resting = False
-        self.dy = 0
-
-    def update(self, tick, game):
-        last = self.rect.copy()
-        key = pygame.key.get_pressed()
-
-        if key[pygame.K_LEFT]:
-            self.rect.x -= 300 * tick
-        if key[pygame.K_RIGHT]:
-            self.rect.x += 300 * tick
-
-        if self.resting and key[pygame.K_SPACE]:
-            self.dy = -500
-        self.dy = min(400, self.dy + 40)
-        self.rect.y += self.dy * tick
-
-        new = self.rect
-        self.resting = False
-        for cell in pygame.sprite.spritecollide(self, game.walls, False):
-            cell = cell.rect
-            if last.right <= cell.left and new.right > cell.left:
-                new.right = cell.left
-            if last.left >= cell.right and new.left < cell.right:
-                new.left = cell.right
-            if last.bottom <= cell.top and new.bottom > cell.top:
-                self.resting = True
-                new.bottom = cell.top
-                self.dy = 0
-            if last.top >= cell.bottom and new.top < cell.bottom:
-                new.top = cell.bottom
-                self.dy = 0
+import settings
+from sprites import Player, Platform
 
 
 class Game(object):
@@ -50,48 +8,100 @@ class Game(object):
     def __init__(self):
         super(Game, self).__init__()
         pygame.init()
-        pygame.display.set_caption('PyGame Demo')
-        self.screen = pygame.display.set_mode((_SWIDTH, _SHEIGHT))
+        pygame.mixer.init()
+        pygame.display.set_caption(settings.TITLE)
+        self.screen = pygame.display.set_mode(
+            (settings.WIDTH, settings.HEIGHT))
+        self.clock = pygame.time.Clock()
+        self.running = True
+        self.playing = False
+        self.font_name = pygame.font.match_font(settings.FONT_NAME)
 
-    def main(self):
-        clock = pygame.time.Clock()
-        sprites = pygame.sprite.Group()
-        self.player = Player(sprites)
+    def new(self):
+        self.sprites = pygame.sprite.Group()
+        self.platforms = pygame.sprite.Group()
+        self.player = Player(self)
+        self.sprites.add(self.player)
+        self.build_platform(settings.PLATFORM_LIST)
+        self.run()
 
-        # create walls
-        self.walls = pygame.sprite.Group()
-        block = pygame.image.load('assets/block.png')
-        for x in range(0, _SWIDTH, _TSIZE):
-            for y in range(0, _SHEIGHT, _TSIZE):
-                if x in (0, _SWIDTH-_TSIZE) or y in (0, _SHEIGHT-_TSIZE):
-                    wall = pygame.sprite.Sprite(self.walls)
-                    wall.image = block
-                    wall.rect = pygame.rect.Rect((x, y), block.get_size())
-        sprites.add(self.walls)
+    def run(self):
+        self.playing = True
+        while self.playing:
+            self.clock.tick(settings.FPS)
+            self.events()
+            self.update()
+            self.draw()
 
-        while True:
-            # force 30fps
-            # getting the current frame rate
-            # and converting to seconds
-            tick = clock.tick(30) / 1000
+    def events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                if self.playing:
+                    self.playing = False
+                self.running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    if self.playing:
+                        self.playing = False
+                    self.running = False
+                if event.key == pygame.K_SPACE:
+                    self.player.jump()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    return
-                if (event.type == pygame.KEYDOWN
-                        and event.key == pygame.K_ESCAPE):
-                    return
+    def update(self):
+        self.sprites.update()
 
-            self.screen.fill((55, 155, 55))
-            sprites.update(tick, self)
-            sprites.draw(self.screen)
-            pygame.display.flip()
+        if len(self.platforms) < len(settings.PLATFORM_LIST):
+            missing = len(settings.PLATFORM_LIST) - len(self.platforms)
+            self.build_platform(amount=missing)
 
-    @classmethod
-    def start(cls):
-        game = cls()
-        game.main()
+    def draw(self):
+        self.screen.fill(settings.BLACK)
+        self.sprites.draw(self.screen)
+        self.draw_text(
+            str(self.player.score), 22, settings.WHITE,
+            (settings.WIDTH / 2, 15))
+        pygame.display.flip()
 
+    def draw_text(self, text, size, color, pos):
+        font = pygame.font.Font(self.font_name, size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = pos
+        self.screen.blit(text_surface, text_rect)
 
-if __name__ == '__main__':
-    Game.start()
+    def build_platform(self, specs=None, amount=0):
+        platforms = []
+        if specs:
+            if type(specs) == list:
+                for spec in specs:
+                    platforms.append(Platform(**spec))
+            elif type(specs) == dict:
+                platforms.append(Platform(**specs))
+        else:
+            if amount:
+                for _ in range(amount):
+                    platforms.append(Platform.random())
+            else:
+                platforms.append(Platform.random())
+        for plat in platforms:
+            self.platforms.add(plat)
+            self.sprites.add(plat)
+
+    def scroll(self, amount):
+        self.player.pos.y += amount
+        for plat in self.platforms:
+            plat.rect.y += amount
+            if plat.rect.top >= settings.HEIGHT:
+                plat.kill()
+                self.player.score += 10
+
+    def start(self):
+        pass
+
+    def over(self):
+        for sprite in self.sprites:
+            sprite.rect.y -= max(self.player.vel.y, 10)
+            if sprite.rect.bottom < 0:
+                sprite.kill()
+        if len(self.platforms) == 0:
+            self.playing = False
