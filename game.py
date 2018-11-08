@@ -1,6 +1,7 @@
 import pygame
 import settings
 from sprites import Player, Platform
+from os import path
 
 
 class Game(object):
@@ -16,6 +17,7 @@ class Game(object):
         self.running = True
         self.playing = False
         self.font_name = pygame.font.match_font(settings.FONT_NAME)
+        self.load_highscore()
 
     def new(self):
         self.sprites = pygame.sprite.Group()
@@ -23,6 +25,7 @@ class Game(object):
         self.player = Player(self)
         self.sprites.add(self.player)
         self.build_platform(settings.PLATFORM_LIST)
+        self.new_highscore = 0
         self.run()
 
     def run(self):
@@ -58,7 +61,7 @@ class Game(object):
         self.screen.fill(settings.BGCOLOR)
         self.sprites.draw(self.screen)
         self.draw_text(
-            str(self.player.score), 22, settings.WHITE,
+            ('%.2f ft' % self.player.score), 18, settings.WHITE,
             (settings.WIDTH / 2, 15))
         pygame.display.flip()
 
@@ -93,7 +96,7 @@ class Game(object):
             plat.rect.y += amount
             if plat.rect.top >= settings.HEIGHT:
                 plat.kill()
-                self.player.score += 10
+                self.player.score += 3.14
 
     def over(self):
         for sprite in self.sprites:
@@ -102,10 +105,17 @@ class Game(object):
                 sprite.kill()
         if len(self.platforms) == 0:
             self.playing = False
+            if self.player.score > self.highscore:
+                self.new_highscore = self.player.score
+                self.highscore = self.new_highscore
+                self.save_highscore()
             self.over_screen()
 
     def splash_screen(self):
         self.screen.fill(settings.BGCOLOR)
+        self.draw_text(
+            ('High score: %.2f ft' % self.highscore), 16, settings.WHITE,
+            (settings.WIDTH/2, 15))
         self.draw_text(
             settings.TITLE, 50, settings.WHITE,
             (settings.WIDTH/2, settings.HEIGHT/4))
@@ -127,11 +137,18 @@ class Game(object):
             'GAME OVER', 50, settings.WHITE,
             (settings.WIDTH/2, settings.HEIGHT/4))
         self.draw_text(
-            f'Score: {self.player.score}', 16, settings.WHITE,
+            ('Score: %.2f ft' % self.player.score), 16, settings.WHITE,
             (settings.WIDTH/2, settings.HEIGHT/2))
         self.draw_text(
             'Press any key to start again', 16, settings.WHITE,
             (settings.WIDTH/2, settings.HEIGHT*3/4))
+        if self.new_highscore:
+            msg = 'NEW HIGH SCORE!'
+        else:
+            msg = ('High score: %.2f ft' % self.highscore)
+        self.draw_text(
+            msg, 16, settings.WHITE,
+            (settings.WIDTH/2, settings.HEIGHT/2+40))
         pygame.display.flip()
         self.wait_for_key()
 
@@ -144,3 +161,16 @@ class Game(object):
                     return
                 if event.type == pygame.KEYDOWN:
                     return
+
+    def load_highscore(self):
+        self._hs_file_path = path.join(
+            path.dirname(__file__), settings.SCORE_FILE)
+        try:
+            f = open(self._hs_file_path, 'r')
+            self.highscore = float(f.read())
+        except Exception:
+            self.highscore = 0.
+
+    def save_highscore(self):
+        with open(self._hs_file_path, 'w') as f:
+            f.write(str(self.highscore))

@@ -16,7 +16,7 @@ class Player(pygame.sprite.Sprite):
         self.pos = Vector2(settings.WIDTH / 2, settings.HEIGHT / 2)
         self.vel = Vector2(0, 0)
         self.acc = Vector2(0, 0)
-        self.score = 0
+        self.score = 0.
 
     def standing(self):
         if self.vel.y > 0:
