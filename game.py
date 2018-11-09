@@ -1,6 +1,7 @@
 import pygame
+import random
 import settings
-from sprites import Spritesheet, Player, Platform
+from sprites import Spritesheet, Player, Platform, Mob
 from os import path
 
 
@@ -20,12 +21,14 @@ class Game(object):
         self.load_data()
 
     def new(self):
-        self.sprites = pygame.sprite.Group()
+        self.sprites = pygame.sprite.LayeredUpdates()
         self.platforms = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
+        self.mobs = pygame.sprite.Group()
         self.player = Player(self)
         self.build_platform(settings.PLATFORM_LIST)
         self.new_highscore = 0
+        self.mob_timer = 0
         pygame.mixer.music.load(path.join(self._snd_path, 'happytune.mp3'))
         pygame.mixer.music.set_volume(1.)
         self.run()
@@ -60,14 +63,22 @@ class Game(object):
     def update(self):
         self.sprites.update()
 
+        # build new platforms if necessary
         if len(self.platforms) < len(settings.PLATFORM_LIST):
             missing = len(settings.PLATFORM_LIST) - len(self.platforms)
             self.build_platform(amount=missing)
 
+        # spawn a new mob after ~5sec
+        now = pygame.time.get_ticks()
+        if (now - self.mob_timer >
+                (settings.MOB_FREQ + random.choice(
+                    [-1000, -500, 0, 500, 1000]))):
+            self.mob_timer = now
+            Mob(self)
+
     def draw(self):
         self.screen.fill(settings.BGCOLOR)
         self.sprites.draw(self.screen)
-        self.screen.blit(self.player.image, self.player.rect)
         self.draw_text(
             f'Score: {self.player.score}', 18, settings.WHITE,
             (settings.WIDTH / 2, 15))
@@ -96,6 +107,10 @@ class Game(object):
 
     def scroll(self, amount):
         self.player.pos.y += amount
+        for mob in self.mobs:
+            mob.rect.y += amount
+            if mob.rect.top >= settings.HEIGHT:
+                mob.kill()
         for plat in self.platforms:
             plat.rect.y += amount
             if plat.rect.top >= settings.HEIGHT:
@@ -194,6 +209,9 @@ class Game(object):
         self.powerup_sound = pygame.mixer.Sound(
             path.join(self._snd_path, 'powerup.wav'))
         self.powerup_sound.set_volume(0.3)
+        self.death_sound = pygame.mixer.Sound(
+            path.join(self._snd_path, 'death.wav'))
+        self.death_sound.set_volume(0.3)
 
     def save_highscore(self):
         with open(self._hs_file_path, 'w') as f:

@@ -20,12 +20,14 @@ class Spritesheet(object):
 class Player(pygame.sprite.Sprite):
 
     def __init__(self, game):
+        self._layer = settings.PLAYER_LAYER
         self.groups = game.sprites,
         super(Player, self).__init__(self.groups)
         self.game = game
         self.walking = False
         self.jumping = False
         self.boosted = False
+        self.alive = True
         self.current_frame = 0
         self.last_update = 0
         self.load_images()
@@ -51,9 +53,10 @@ class Player(pygame.sprite.Sprite):
             self.walk_frames_l.append(
                 pygame.transform.flip(frame, True, False))
         self.jump_frame = self.game.spritesheet.get_image(382, 763, 150, 181)
+        self.dying_frame = self.game.spritesheet.get_image(382, 946, 150, 174)
 
     def standing(self):
-        if self.vel.y > 0:
+        if self.vel.y > 0 and self.alive:
             hits = pygame.sprite.spritecollide(
                 self, self.game.platforms, False)
             if hits:
@@ -112,16 +115,33 @@ class Player(pygame.sprite.Sprite):
                 self.vel.y = -6
 
     def hit_powerup(self):
-        for hit in pygame.sprite.spritecollide(self, self.game.powerups, True):
-            if hit.type == 'boost':
-                self.boosted = True
-                self.vel.y = settings.BOOST_POWER
-                self.game.powerup_sound.play()
+        if self.alive:
+            for hit in pygame.sprite.spritecollide(
+                    self, self.game.powerups, True):
+                if hit.type == 'boost':
+                    self.boosted = True
+                    self.vel.y = settings.BOOST_POWER
+                    self.game.powerup_sound.play()
+
+    def hit_mob(self):
+        if self.alive:
+            for hit in pygame.sprite.spritecollide(
+                    self, self.game.mobs, False):
+                self.alive = False
+                self.game.death_sound.play()
 
     def animate(self):
         now = pygame.time.get_ticks()
 
-        if self.jumping or self.boosted:
+        if not self.alive:
+            if now - self.last_update > 100:
+                self.last_update = now
+                bottom = self.rect.bottom
+                self.image = self.dying_frame
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+
+        elif self.jumping or self.boosted:
             if now - self.last_update > 100:
                 self.last_update = now
                 bottom = self.rect.bottom
@@ -129,7 +149,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
 
-        if self.walking:
+        elif self.walking:
             if now - self.last_update > 180:
                 self.last_update = now
                 self.current_frame = (
@@ -142,7 +162,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
 
-        if not self.jumping and not self.walking:
+        elif not self.jumping and not self.walking:
             if now - self.last_update > 250:
                 self.last_update = now
                 self.current_frame = (
@@ -165,6 +185,9 @@ class Player(pygame.sprite.Sprite):
         # check for poweups
         self.hit_powerup()
 
+        # check if hit a mob
+        self.hit_mob()
+
         # animate player sprite
         self.animate()
 
@@ -183,6 +206,7 @@ class Player(pygame.sprite.Sprite):
 class Platform(pygame.sprite.Sprite):
 
     def __init__(self, game, pos=None):
+        self._layer = settings.PLATFORM_LAYER
         self.groups = game.sprites, game.platforms
         super(Platform, self).__init__(self.groups)
         self.game = game
@@ -202,6 +226,7 @@ class Platform(pygame.sprite.Sprite):
 class Pow(pygame.sprite.Sprite):
 
     def __init__(self, game, platform):
+        self._layer = settings.POW_LAYER
         self.groups = game.sprites, game.powerups
         super(Pow, self).__init__(self.groups)
         self.game = game
@@ -215,4 +240,44 @@ class Pow(pygame.sprite.Sprite):
     def update(self):
         self.rect.bottom = self.platform.rect.top - 5
         if not self.game.platforms.has(self.platform):
+            self.kill()
+
+
+class Mob(pygame.sprite.Sprite):
+
+    def __init__(self, game):
+        self._layer = settings.MOB_LAYER
+        self.groups = game.sprites, game.mobs
+        super(Mob, self).__init__(self.groups)
+        self.game = game
+        self.image_frames = [
+            self.game.spritesheet.get_image(*t)
+            for t in ((566, 510, 122, 139), (568, 1534, 122, 135))
+        ]
+        self.image = self.image_frames[0]
+        self.rect = self.image.get_rect()
+        self.rect.centerx = random.choice([-100, settings.WIDTH + 100])
+        self.vx = random.randrange(1, 4)
+        if self.rect.centerx > settings.WIDTH:
+            self.vx *= -1
+        self.rect.y = random.randrange(settings.HEIGHT / 2)
+        self.vy = 0
+        self.dy = 0.5
+
+    def update(self):
+        self.rect.x += self.vx
+        self.vy += self.dy
+        if self.vy > 3 or self.vy < -3:
+            self.dy *= -1
+
+        # switch image frames
+        center = self.rect.center
+        if self.dy < 0:
+            self.image = self.image_frames[0]
+        else:
+            self.image = self.image_frames[1]
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.rect.y += self.vy
+        if self.rect.left > settings.WIDTH + 100 or self.rect.right < -100:
             self.kill()
