@@ -69,7 +69,7 @@ class Game(object):
         self.sprites.draw(self.screen)
         self.screen.blit(self.player.image, self.player.rect)
         self.draw_text(
-            ('%.2f ft' % self.player.score), 18, settings.WHITE,
+            f'Score: {self.player.score}', 18, settings.WHITE,
             (settings.WIDTH / 2, 15))
         pygame.display.flip()
 
@@ -104,7 +104,7 @@ class Game(object):
             plat.rect.y += amount
             if plat.rect.top >= settings.HEIGHT:
                 plat.kill()
-                self.player.score += 3.14
+                self.player.score += 1
 
     def over(self):
         for sprite in self.sprites:
@@ -122,7 +122,7 @@ class Game(object):
     def splash_screen(self):
         self.screen.fill(settings.BGCOLOR)
         self.draw_text(
-            ('High score: %.2f ft' % self.highscore), 16, settings.WHITE,
+            f'High score: {self.highscore}', 16, settings.WHITE,
             (settings.WIDTH/2, 15))
         self.draw_text(
             settings.TITLE, 50, settings.WHITE,
@@ -149,7 +149,7 @@ class Game(object):
             'GAME OVER', 50, settings.WHITE,
             (settings.WIDTH/2, settings.HEIGHT/4))
         self.draw_text(
-            ('Score: %.2f ft' % self.player.score), 16, settings.WHITE,
+            f'Score: {self.player.score}', 16, settings.WHITE,
             (settings.WIDTH/2, settings.HEIGHT/2))
         self.draw_text(
             'Press any key to start again', 16, settings.WHITE,
@@ -157,7 +157,7 @@ class Game(object):
         if self.new_highscore:
             msg = 'NEW HIGH SCORE!'
         else:
-            msg = ('High score: %.2f ft' % self.highscore)
+            msg = f'High score: {self.highscore}'
         self.draw_text(
             msg, 16, settings.WHITE,
             (settings.WIDTH/2, settings.HEIGHT/2+40))
@@ -181,9 +181,9 @@ class Game(object):
         self._hs_file_path = path.join(cur_dir, settings.SCORE_FILE)
         try:
             f = open(self._hs_file_path, 'r')
-            self.highscore = float(f.read())
+            self.highscore = int(f.read())
         except Exception:
-            self.highscore = 0.
+            self.highscore = 0
 
         # load spritesheet
         assets_path = path.join(cur_dir, 'assets')

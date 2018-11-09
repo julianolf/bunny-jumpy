@@ -33,7 +33,7 @@ class Player(pygame.sprite.Sprite):
         self.pos = Vector2(50, settings.HEIGHT * 3 / 4)
         self.vel = Vector2(0, 0)
         self.acc = Vector2(0, 0)
-        self.score = 0.
+        self.score = 0
 
     def load_images(self):
         self.standing_frames = [
