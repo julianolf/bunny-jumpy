@@ -26,15 +26,19 @@ class Game(object):
         self.sprites.add(self.player)
         self.build_platform(settings.PLATFORM_LIST)
         self.new_highscore = 0
+        pygame.mixer.music.load(path.join(self._snd_path, 'happytune.mp3'))
+        pygame.mixer.music.set_volume(1.)
         self.run()
 
     def run(self):
+        pygame.mixer.music.play(loops=-1)
         self.playing = True
         while self.playing:
             self.clock.tick(settings.FPS)
             self.events()
             self.update()
             self.draw()
+        pygame.mixer.music.fadeout(500)
 
     def events(self):
         for event in pygame.event.get():
@@ -133,7 +137,11 @@ class Game(object):
             'Press any key to start', 16, settings.WHITE,
             (settings.WIDTH/2, settings.HEIGHT*3/4))
         pygame.display.flip()
+        pygame.mixer.music.load(path.join(self._snd_path, 'yippee.wav'))
+        pygame.mixer.music.set_volume(0.3)
+        pygame.mixer.music.play()
         self.wait_for_key()
+        pygame.mixer.music.fadeout(500)
 
     def over_screen(self):
         self.screen.fill(settings.BGCOLOR)
@@ -181,6 +189,12 @@ class Game(object):
         assets_path = path.join(cur_dir, 'assets')
         self.spritesheet = Spritesheet(
             path.join(assets_path, settings.SPRITESHEET))
+
+        # load sounds
+        self._snd_path = path.join(cur_dir, 'media')
+        self.jump_sound = pygame.mixer.Sound(
+            path.join(self._snd_path, 'jump.wav'))
+        self.jump_sound.set_volume(0.3)
 
     def save_highscore(self):
         with open(self._hs_file_path, 'w') as f:

@@ -99,6 +99,7 @@ class Player(pygame.sprite.Sprite):
         if hits and not self.jumping:
             self.jumping = True
             self.vel.y = settings.PLAYER_STRENGTH
+            self.game.jump_sound.play()
 
     def cut_jump(self):
         if self.jumping:
