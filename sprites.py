@@ -126,7 +126,7 @@ class Player(pygame.sprite.Sprite):
     def hit_mob(self):
         if self.alive:
             for hit in pygame.sprite.spritecollide(
-                    self, self.game.mobs, False):
+                    self, self.game.mobs, False, pygame.sprite.collide_mask):
                 self.alive = False
                 self.game.death_sound.play()
 
@@ -171,6 +171,9 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.standing_frames[self.current_frame]
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
+
+        # refresh the sprite mask
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
         # reset acceleration and gravity values
@@ -277,6 +280,7 @@ class Mob(pygame.sprite.Sprite):
         else:
             self.image = self.image_frames[1]
         self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect.center = center
         self.rect.y += self.vy
         if self.rect.left > settings.WIDTH + 100 or self.rect.right < -100:
