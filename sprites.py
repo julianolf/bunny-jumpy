@@ -59,10 +59,12 @@ class Player(pygame.sprite.Sprite):
                 for hit in hits:
                     if hit.rect.bottom > lowest.rect.bottom:
                         lowest = hit
-                if self.pos.y < lowest.rect.centery:
-                    self.pos.y = lowest.rect.top
-                    self.vel.y = 0
-                    self.jumping = False
+                if (self.pos.x < lowest.rect.right + 10
+                        and self.pos.x > lowest.rect.left - 10):
+                    if self.pos.y < lowest.rect.centery:
+                        self.pos.y = lowest.rect.top
+                        self.vel.y = 0
+                        self.jumping = False
 
     def walk(self):
         key = pygame.key.get_pressed()
