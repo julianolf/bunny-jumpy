@@ -16,6 +16,10 @@ PLAYER_FRICTION = -0.12
 PLAYER_STRENGTH = -20
 GRAVITY = 0.8
 
+# game properties
+BOOST_POWER = -60
+POW_SPAWN_PCT = 7
+
 # initial platforms
 PLATFORM_LIST = [
     {'pos': (5, HEIGHT - 60)},

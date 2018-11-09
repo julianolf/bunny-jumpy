@@ -22,8 +22,8 @@ class Game(object):
     def new(self):
         self.sprites = pygame.sprite.Group()
         self.platforms = pygame.sprite.Group()
+        self.powerups = pygame.sprite.Group()
         self.player = Player(self)
-        self.sprites.add(self.player)
         self.build_platform(settings.PLATFORM_LIST)
         self.new_highscore = 0
         pygame.mixer.music.load(path.join(self._snd_path, 'happytune.mp3'))
@@ -81,22 +81,18 @@ class Game(object):
         self.screen.blit(text_surface, text_rect)
 
     def build_platform(self, specs=None, amount=0):
-        platforms = []
         if specs:
             if type(specs) == list:
                 for spec in specs:
-                    platforms.append(Platform(self, **spec))
+                    Platform(self, **spec)
             elif type(specs) == dict:
-                platforms.append(Platform(self, **specs))
+                Platform(self, **specs)
         else:
             if amount:
                 for _ in range(amount):
-                    platforms.append(Platform(self))
+                    Platform(self)
             else:
-                platforms.append(Platform(self))
-        for plat in platforms:
-            self.platforms.add(plat)
-            self.sprites.add(plat)
+                Platform(self)
 
     def scroll(self, amount):
         self.player.pos.y += amount
@@ -139,7 +135,7 @@ class Game(object):
         pygame.display.flip()
         pygame.mixer.music.load(path.join(self._snd_path, 'yippee.wav'))
         pygame.mixer.music.set_volume(0.3)
-        pygame.mixer.music.play()
+        pygame.mixer.music.play(loops=-1)
         self.wait_for_key()
         pygame.mixer.music.fadeout(500)
 
@@ -195,6 +191,9 @@ class Game(object):
         self.jump_sound = pygame.mixer.Sound(
             path.join(self._snd_path, 'jump.wav'))
         self.jump_sound.set_volume(0.3)
+        self.powerup_sound = pygame.mixer.Sound(
+            path.join(self._snd_path, 'powerup.wav'))
+        self.powerup_sound.set_volume(0.3)
 
     def save_highscore(self):
         with open(self._hs_file_path, 'w') as f:

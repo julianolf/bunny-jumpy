@@ -20,10 +20,12 @@ class Spritesheet(object):
 class Player(pygame.sprite.Sprite):
 
     def __init__(self, game):
-        super(Player, self).__init__()
+        self.groups = game.sprites,
+        super(Player, self).__init__(self.groups)
         self.game = game
         self.walking = False
         self.jumping = False
+        self.boosted = False
         self.current_frame = 0
         self.last_update = 0
         self.load_images()
@@ -65,6 +67,7 @@ class Player(pygame.sprite.Sprite):
                         self.pos.y = lowest.rect.top
                         self.vel.y = 0
                         self.jumping = False
+                        self.boosted = False
 
     def walk(self):
         key = pygame.key.get_pressed()
@@ -104,14 +107,21 @@ class Player(pygame.sprite.Sprite):
             self.game.jump_sound.play()
 
     def cut_jump(self):
-        if self.jumping:
+        if self.jumping and not self.boosted:
             if self.vel.y < -6:
                 self.vel.y = -6
+
+    def hit_powerup(self):
+        for hit in pygame.sprite.spritecollide(self, self.game.powerups, True):
+            if hit.type == 'boost':
+                self.boosted = True
+                self.vel.y = settings.BOOST_POWER
+                self.game.powerup_sound.play()
 
     def animate(self):
         now = pygame.time.get_ticks()
 
-        if self.jumping:
+        if self.jumping or self.boosted:
             if now - self.last_update > 100:
                 self.last_update = now
                 bottom = self.rect.bottom
@@ -152,6 +162,9 @@ class Player(pygame.sprite.Sprite):
         # move left or right according to players command
         self.walk()
 
+        # check for poweups
+        self.hit_powerup()
+
         # animate player sprite
         self.animate()
 
@@ -170,7 +183,8 @@ class Player(pygame.sprite.Sprite):
 class Platform(pygame.sprite.Sprite):
 
     def __init__(self, game, pos=None):
-        super(Platform, self).__init__()
+        self.groups = game.sprites, game.platforms
+        super(Platform, self).__init__(self.groups)
         self.game = game
         image_info = random.choice([(0, 288, 380, 94), (213, 1662, 201, 100)])
         self.image = self.game.spritesheet.get_image(*image_info)
@@ -181,3 +195,24 @@ class Platform(pygame.sprite.Sprite):
                 random.randrange(-64, -32)
             )
         self.rect.x, self.rect.y = pos
+        if random.randrange(100) < settings.POW_SPAWN_PCT:
+            Pow(self.game, self)
+
+
+class Pow(pygame.sprite.Sprite):
+
+    def __init__(self, game, platform):
+        self.groups = game.sprites, game.powerups
+        super(Pow, self).__init__(self.groups)
+        self.game = game
+        self.platform = platform
+        self.type = random.choice(['boost'])
+        self.image = self.game.spritesheet.get_image(820, 1805, 71, 70)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = self.platform.rect.centerx
+        self.rect.bottom = self.platform.rect.top - 5
+
+    def update(self):
+        self.rect.bottom = self.platform.rect.top - 5
+        if not self.game.platforms.has(self.platform):
+            self.kill()
