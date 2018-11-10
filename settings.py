@@ -34,6 +34,13 @@ PLATFORM_LIST = [
     {'pos': (175, 100)}
 ]
 
+# initial clouds
+CLOUD_LAYER = 0
+CLOUD_LIST = [
+    (15, 15), (WIDTH * 3 / 4, 50), (WIDTH / 2, HEIGHT / 2),
+    (50, HEIGHT * 2 / 3), (WIDTH * 3 / 4, HEIGHT * 2 / 3 + 20)
+]
+
 # colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -41,5 +48,5 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
-LIGHTBLUE = (0, 155, 155)
+LIGHTBLUE = (0, 190, 240)
 BGCOLOR = LIGHTBLUE

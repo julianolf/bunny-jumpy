@@ -226,6 +226,30 @@ class Platform(pygame.sprite.Sprite):
             Pow(self.game, self)
 
 
+class Cloud(pygame.sprite.Sprite):
+
+    def __init__(self, game, pos=None):
+        self._layer = settings.CLOUD_LAYER
+        self.groups = game.sprites, game.clouds
+        super(Cloud, self).__init__(self.groups)
+        self.game = game
+        self.image = self.game.spritesheet.get_image(0, 1152, 260, 134)
+        self.rect = self.image.get_rect()
+        scale = random.randrange(50, 101) / 100
+        self.image = pygame.transform.scale(
+            self.image, (int(self.rect.width * scale),
+                         int(self.rect.height * scale)))
+        if pos:
+            self.rect.x, self.rect.y = pos
+        else:
+            self.rect.x = random.randrange(settings.WIDTH - self.rect.width)
+            self.rect.y = random.randrange(-500, -50)
+
+    def update(self):
+        if self.rect.y > settings.HEIGHT * 2:
+            self.kill()
+
+
 class Pow(pygame.sprite.Sprite):
 
     def __init__(self, game, platform):

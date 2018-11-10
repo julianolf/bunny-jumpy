@@ -1,7 +1,7 @@
 import pygame
 import random
 import settings
-from sprites import Spritesheet, Player, Platform, Mob
+from sprites import Spritesheet, Player, Platform, Mob, Cloud
 from os import path
 
 
@@ -23,10 +23,12 @@ class Game(object):
     def new(self):
         self.sprites = pygame.sprite.LayeredUpdates()
         self.platforms = pygame.sprite.Group()
+        self.clouds = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
         self.mobs = pygame.sprite.Group()
         self.player = Player(self)
         self.build_platform(settings.PLATFORM_LIST)
+        self.build_cloud(settings.CLOUD_LIST)
         self.new_highscore = 0
         self.mob_timer = 0
         pygame.mixer.music.load(path.join(self._snd_path, 'happytune.mp3'))
@@ -105,17 +107,40 @@ class Game(object):
             else:
                 Platform(self)
 
+    def build_cloud(self, specs=None, amount=0):
+        if specs:
+            if type(specs) == list:
+                for spec in specs:
+                    Cloud(self, pos=spec)
+            elif type(specs) == tuple:
+                Cloud(self, pos=spec)
+        else:
+            if amount:
+                for _ in range(amount):
+                    Cloud(self)
+            else:
+                Cloud(self)
+
     def scroll(self, amount):
         self.player.pos.y += amount
+
+        for cloud in self.clouds:
+            cloud.rect.y += max(abs(self.player.vel.y / 2), 2)
+
         for mob in self.mobs:
             mob.rect.y += amount
             if mob.rect.top >= settings.HEIGHT:
                 mob.kill()
+
         for plat in self.platforms:
             plat.rect.y += amount
             if plat.rect.top >= settings.HEIGHT:
                 plat.kill()
                 self.player.score += 1
+
+        # spawn new clouds
+        if random.randrange(100) < 5:
+            self.build_cloud()
 
     def over(self):
         for sprite in self.sprites:
