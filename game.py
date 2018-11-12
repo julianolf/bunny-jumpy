@@ -3,6 +3,7 @@ import random
 import settings
 from sprites import Player, Mob
 from sprite.inanimate import Platform, Cloud
+from sprite.items import Jetpack
 from sprite.spritesheet import Spritesheet
 from os import path
 
@@ -98,6 +99,7 @@ class Game(object):
 
     def build_platform(self, specs=None, amount=0):
         groups = [self.sprites, self.platforms]
+
         if specs:
             if type(specs) == list:
                 for pos in specs:
@@ -106,14 +108,20 @@ class Game(object):
                             settings.STAGE_PLATFORMS[self.stage - 1]
                         )
                     )
-                    Platform(image, pos, groups)
+                    plat = Platform(image, pos, groups)
+                    if random.randrange(100) < settings.POW_SPAWN_PCT:
+                        image = self.spritesheet.get_image(Jetpack.image_name)
+                        Jetpack(image, plat, [self.sprites, self.powerups])
             elif type(specs) == dict:
                 image = self.spritesheet.get_image(
                     random.choice(
                         settings.STAGE_PLATFORMS[self.stage - 1]
                     )
                 )
-                Platform(image, specs, groups)
+                plat = Platform(image, specs, groups)
+                if random.randrange(100) < settings.POW_SPAWN_PCT:
+                    image = self.spritesheet.get_image(Jetpack.image_name)
+                    Jetpack(image, plat, [self.sprites, self.powerups])
         else:
             if amount:
                 for _ in range(amount):
@@ -126,7 +134,10 @@ class Game(object):
                         random.randrange(0, settings.WIDTH - image.get_rect().width),
                         random.randrange(-64, -32)
                     )
-                    Platform(image, pos, groups)
+                    plat = Platform(image, pos, groups)
+                    if random.randrange(100) < settings.POW_SPAWN_PCT:
+                        image = self.spritesheet.get_image(Jetpack.image_name)
+                        Jetpack(image, plat, [self.sprites, self.powerups])
             else:
                 image = self.spritesheet.get_image(
                     random.choice(
@@ -137,7 +148,10 @@ class Game(object):
                     random.randrange(0, settings.WIDTH - image.get_rect().width),
                     random.randrange(-64, -32)
                 )
-                Platform(image, pos, groups)
+                plat = Platform(image, pos, groups)
+                if random.randrange(100) < settings.POW_SPAWN_PCT:
+                    image = self.spritesheet.get_image(Jetpack.image_name)
+                    Jetpack(image, plat, [self.sprites, self.powerups])
 
     def build_cloud(self, specs=None, amount=0):
         groups = [self.sprites, self.clouds]

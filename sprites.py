@@ -2,6 +2,7 @@ import pygame
 import random
 import settings
 from pygame.math import Vector2
+from sprite.items import Jetpack
 
 
 class Spritesheet(object):
@@ -41,19 +42,19 @@ class Player(pygame.sprite.Sprite):
 
     def load_images(self):
         self.standing_frames = [
-            self.game.spritesheet.get_image(*t)
-            for t in ((614, 1063, 120, 191), (690, 406, 120, 201))
+            self.game.spritesheet.get_image('bunny1_stand.png'),
+            self.game.spritesheet.get_image('bunny1_ready.png')
         ]
         self.walk_frames_r = [
-            self.game.spritesheet.get_image(*t)
-            for t in ((678, 860, 120, 201), (692, 1458, 120, 207))
+            self.game.spritesheet.get_image('bunny1_walk1.png'),
+            self.game.spritesheet.get_image('bunny1_walk2.png')
         ]
         self.walk_frames_l = []
         for frame in self.walk_frames_r:
             self.walk_frames_l.append(
                 pygame.transform.flip(frame, True, False))
-        self.jump_frame = self.game.spritesheet.get_image(382, 763, 150, 181)
-        self.dying_frame = self.game.spritesheet.get_image(382, 946, 150, 174)
+        self.jump_frame = self.game.spritesheet.get_image('bunny1_jump.png')
+        self.dying_frame = self.game.spritesheet.get_image('bunny1_hurt.png')
 
     def standing(self):
         if self.vel.y > 0 and self.alive:
@@ -118,7 +119,7 @@ class Player(pygame.sprite.Sprite):
         if self.alive:
             for hit in pygame.sprite.spritecollide(
                     self, self.game.powerups, True):
-                if hit.type == 'boost':
+                if isinstance(hit, Jetpack):
                     self.boosted = True
                     self.vel.y = settings.BOOST_POWER
                     self.game.powerup_sound.play()
@@ -213,8 +214,10 @@ class Platform(pygame.sprite.Sprite):
         self.groups = game.sprites, game.platforms
         super(Platform, self).__init__(self.groups)
         self.game = game
-        image_info = random.choice([(0, 288, 380, 94), (213, 1662, 201, 100)])
-        self.image = self.game.spritesheet.get_image(*image_info)
+        image_name = random.choice([
+            'ground_grass.png', 'ground_grass_small.png',
+            'ground_grass_broken.png', 'ground_grass_small_broken.png'])
+        self.image = self.game.spritesheet.get_image(image_name)
         self.rect = self.image.get_rect()
         if not pos:
             pos = (
@@ -233,7 +236,7 @@ class Cloud(pygame.sprite.Sprite):
         self.groups = game.sprites, game.clouds
         super(Cloud, self).__init__(self.groups)
         self.game = game
-        self.image = self.game.spritesheet.get_image(0, 1152, 260, 134)
+        self.image = self.game.spritesheet.get_image('cloud.png')
         self.rect = self.image.get_rect()
         scale = random.randrange(50, 101) / 100
         self.image = pygame.transform.scale(
@@ -259,7 +262,7 @@ class Pow(pygame.sprite.Sprite):
         self.game = game
         self.platform = platform
         self.type = random.choice(['boost'])
-        self.image = self.game.spritesheet.get_image(820, 1805, 71, 70)
+        self.image = self.game.spritesheet.get_image('powerup_jetpack.png')
         self.rect = self.image.get_rect()
         self.rect.centerx = self.platform.rect.centerx
         self.rect.bottom = self.platform.rect.top - 5
@@ -278,8 +281,8 @@ class Mob(pygame.sprite.Sprite):
         super(Mob, self).__init__(self.groups)
         self.game = game
         self.image_frames = [
-            self.game.spritesheet.get_image(*t)
-            for t in ((566, 510, 122, 139), (568, 1534, 122, 135))
+            self.game.spritesheet.get_image('flyMan_fly.png'),
+            self.game.spritesheet.get_image('flyMan_stand.png')
         ]
         self.image = self.image_frames[0]
         self.rect = self.image.get_rect()
