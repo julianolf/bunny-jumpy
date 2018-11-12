@@ -1,7 +1,9 @@
 import pygame
 import random
 import settings
-from sprites import Spritesheet, Player, Platform, Mob, Cloud
+from sprites import Player, Mob
+from sprite.inanimate import Platform, Cloud
+from sprite.spritesheet import Spritesheet
 from os import path
 
 
@@ -21,6 +23,9 @@ class Game(object):
         self.load_data()
 
     def new(self):
+        self.new_highscore = 0
+        self.mob_timer = 0
+        self.stage = 1
         self.sprites = pygame.sprite.LayeredUpdates()
         self.platforms = pygame.sprite.Group()
         self.clouds = pygame.sprite.Group()
@@ -29,8 +34,6 @@ class Game(object):
         self.player = Player(self)
         self.build_platform(settings.PLATFORM_LIST)
         self.build_cloud(settings.CLOUD_LIST)
-        self.new_highscore = 0
-        self.mob_timer = 0
         pygame.mixer.music.load(path.join(self._snd_path, 'happytune.mp3'))
         pygame.mixer.music.set_volume(1.)
         self.run()
@@ -94,32 +97,74 @@ class Game(object):
         self.screen.blit(text_surface, text_rect)
 
     def build_platform(self, specs=None, amount=0):
+        groups = [self.sprites, self.platforms]
         if specs:
             if type(specs) == list:
-                for spec in specs:
-                    Platform(self, **spec)
+                for pos in specs:
+                    image = self.spritesheet.get_image(
+                        random.choice(
+                            settings.STAGE_PLATFORMS[self.stage - 1]
+                        )
+                    )
+                    Platform(image, pos, groups)
             elif type(specs) == dict:
-                Platform(self, **specs)
+                image = self.spritesheet.get_image(
+                    random.choice(
+                        settings.STAGE_PLATFORMS[self.stage - 1]
+                    )
+                )
+                Platform(image, specs, groups)
         else:
             if amount:
                 for _ in range(amount):
-                    Platform(self)
+                    image = self.spritesheet.get_image(
+                        random.choice(
+                            settings.STAGE_PLATFORMS[self.stage - 1]
+                        )
+                    )
+                    pos = (
+                        random.randrange(0, settings.WIDTH - image.get_rect().width),
+                        random.randrange(-64, -32)
+                    )
+                    Platform(image, pos, groups)
             else:
-                Platform(self)
+                image = self.spritesheet.get_image(
+                    random.choice(
+                        settings.STAGE_PLATFORMS[self.stage - 1]
+                    )
+                )
+                pos = (
+                    random.randrange(0, settings.WIDTH - image.get_rect().width),
+                    random.randrange(-64, -32)
+                )
+                Platform(image, pos, groups)
 
     def build_cloud(self, specs=None, amount=0):
+        groups = [self.sprites, self.clouds]
         if specs:
             if type(specs) == list:
-                for spec in specs:
-                    Cloud(self, pos=spec)
+                for pos in specs:
+                    image = self.spritesheet.get_image(Cloud.image_name)
+                    Cloud(image, pos, groups)
             elif type(specs) == tuple:
-                Cloud(self, pos=spec)
+                image = self.spritesheet.get_image(Cloud.image_name)
+                Cloud(self, image, specs, groups)
         else:
             if amount:
                 for _ in range(amount):
-                    Cloud(self)
+                    image = self.spritesheet.get_image(Cloud.image_name)
+                    pos = (
+                        random.randrange(settings.WIDTH - image.get_rect().width),
+                        random.randrange(-500, -50)
+                    )
+                    Cloud(image, pos, groups)
             else:
-                Cloud(self)
+                image = self.spritesheet.get_image(Cloud.image_name)
+                pos = (
+                    random.randrange(settings.WIDTH - image.get_rect().width),
+                    random.randrange(-500, -50)
+                )
+                Cloud(image, pos, groups)
 
     def scroll(self, amount):
         self.player.pos.y += amount

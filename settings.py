@@ -21,17 +21,24 @@ GRAVITY = 0.8
 BOOST_POWER = -60
 POW_SPAWN_PCT = 7
 POW_LAYER = 1
+POWERUP_LAYER = 1
 MOB_FREQ = 5000
 MOB_LAYER = 2
 
 # initial platforms
 PLATFORM_LAYER = 1
+STAGE_PLATFORMS = (
+    (
+        'ground_grass.png', 'ground_grass_small.png',
+        'ground_grass_broken.png', 'ground_grass_small_broken.png'
+    ),
+)
 PLATFORM_LIST = [
-    {'pos': (5, HEIGHT - 60)},
-    {'pos': (WIDTH / 2 - 50, HEIGHT * 3 / 4)},
-    {'pos': (125, HEIGHT - 350)},
-    {'pos': (280, 200)},
-    {'pos': (175, 100)}
+    (5, HEIGHT - 60),
+    (WIDTH / 2 - 50, HEIGHT * 3 / 4),
+    (125, HEIGHT - 350),
+    (280, 200),
+    (175, 100)
 ]
 
 # initial clouds
