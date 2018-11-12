@@ -27,7 +27,7 @@ class Powerup(pygame.sprite.Sprite):
     def update(self):
         """Kills powerup if its platform does not exist anymore
         or update its position following the platform."""
-        if not self.platform.alive():
+        if self.platform and not self.platform.alive():
             self.kill()
         else:
             self.rect.bottom = self.platform.rect.top - 5
@@ -41,5 +41,5 @@ class Jetpack(Powerup):
     """
     image_name = 'powerup_jetpack.png'
 
-    def __init__(self, image, platform, groups):
+    def __init__(self, image, platform=None, groups=[]):
         super(Jetpack, self).__init__(image, platform, groups)

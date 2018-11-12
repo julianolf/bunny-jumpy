@@ -5,7 +5,7 @@ import settings
 class Inanimate(pygame.sprite.Sprite):
     """Describes common behavior and attributes between inanimate things."""
 
-    def __init__(self, image, pos=(0, 0), groups=[]):
+    def __init__(self, image, pos, groups):
         """
         Args:
             image (pygame.Surface): Image surface loaded via pygame.image.load.
@@ -26,7 +26,7 @@ class Platform(Inanimate):
     """
     _layer = settings.PLATFORM_LAYER
 
-    def __init__(self, image, pos, groups):
+    def __init__(self, image, pos=(0, 0), groups=[]):
         """
         Args:
             image (pygame.Surface): Platform image surface.
@@ -46,7 +46,7 @@ class Cloud(Inanimate):
     _layer = settings.CLOUD_LAYER
     image_name = 'cloud.png'
 
-    def __init__(self, image, pos, groups):
+    def __init__(self, image, pos=(0, 0), groups=[]):
         """
         Args:
             image (pygame.Surface): Platform image surface.
