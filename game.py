@@ -1,7 +1,8 @@
 import pygame
 import random
 import settings
-from sprites import Player, Mob
+from sprites import Player
+from sprite.living import FlyMan
 from sprite.inanimate import Platform, Cloud
 from sprite.items import Jetpack
 from sprite.spritesheet import Spritesheet
@@ -80,7 +81,16 @@ class Game(object):
                 (settings.MOB_FREQ + random.choice(
                     [-1000, -500, 0, 500, 1000]))):
             self.mob_timer = now
-            Mob(self)
+            images = [
+                self.spritesheet.get_image(image_name)
+                for image_name in FlyMan.image_names
+            ]
+            pos = (
+                random.choice([-100, settings.WIDTH + 100]),
+                random.randrange(settings.HEIGHT / 2)
+            )
+            groups = [self.sprites, self.mobs]
+            FlyMan(images, pos, groups)
 
     def draw(self):
         self.screen.fill(settings.BGCOLOR)
