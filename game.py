@@ -31,7 +31,7 @@ class Game(object):
         self.platforms = pygame.sprite.Group()
         self.clouds = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
-        self.mobs = pygame.sprite.Group()
+        self.enemies = pygame.sprite.Group()
         self.player = Player.new(self)
         self.build_platform(settings.PLATFORM_LIST)
         self.build_cloud(settings.CLOUD_LIST)
@@ -88,7 +88,7 @@ class Game(object):
                 random.choice([-100, settings.WIDTH + 100]),
                 random.randrange(settings.HEIGHT / 2)
             )
-            groups = [self.sprites, self.mobs]
+            groups = [self.sprites, self.enemies]
             FlyMan(images, pos, groups)
 
     def draw(self):
@@ -195,7 +195,7 @@ class Game(object):
         for cloud in self.clouds:
             cloud.rect.y += max(abs(self.player.vel.y / 2), 2)
 
-        for mob in self.mobs:
+        for mob in self.enemies:
             mob.rect.y += amount
             if mob.rect.top >= settings.HEIGHT:
                 mob.kill()

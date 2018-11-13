@@ -146,10 +146,12 @@ class Player(LivingBeing):
                     self.vel.y = settings.BOOST_POWER
                     self.game.powerup_sound.play()
 
-    def hit_mob(self):
+    def hit_enemy(self):
+        """Check if the player hitted a enemy."""
         if self.alive:
             for hit in pygame.sprite.spritecollide(
-                    self, self.game.mobs, False, pygame.sprite.collide_mask):
+                    self, self.game.enemies, False,
+                    pygame.sprite.collide_mask):
                 self.alive = False
                 self.game.death_sound.play()
 
@@ -196,6 +198,9 @@ class Player(LivingBeing):
         self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
+        """Check if the player is alive and perform
+        all animations like walking, jumping, etc."""
+
         # reset acceleration and gravity values
         self.acc = Vector2(0, settings.GRAVITY)
 
@@ -209,7 +214,7 @@ class Player(LivingBeing):
         self.hit_powerup()
 
         # check if hit a mob
-        self.hit_mob()
+        self.hit_enemy()
 
         # animate player sprite
         self.animate()
