@@ -1,8 +1,7 @@
 import pygame
 import random
 import settings
-from sprites import Player
-from sprite.living import FlyMan
+from sprite.living import Player, FlyMan
 from sprite.inanimate import Platform, Cloud
 from sprite.items import Jetpack
 from sprite.spritesheet import Spritesheet
@@ -33,7 +32,7 @@ class Game(object):
         self.clouds = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
         self.mobs = pygame.sprite.Group()
-        self.player = Player(self)
+        self.player = Player.new(self)
         self.build_platform(settings.PLATFORM_LIST)
         self.build_cloud(settings.CLOUD_LIST)
         pygame.mixer.music.load(path.join(self._snd_path, 'happytune.mp3'))
