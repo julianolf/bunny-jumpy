@@ -51,7 +51,7 @@ class Game(object):
             self.build_platform(pos)
         for pos in settings.CLOUD_LIST:
             self.build_cloud(pos)
-        pygame.mixer.music.load(path.join(self._snd_path, 'happytune.mp3'))
+        pygame.mixer.music.load(path.join(self._snd_path, settings.SND_MAIN))
         pygame.mixer.music.set_volume(1.)
         self.run()
 
@@ -180,6 +180,10 @@ class Game(object):
                 self.player.score += 1
 
     def over(self):
+        """End the game.
+
+        Move platforms up till they get off the screen and be destroyed.
+        Verify is the highscore was beaten and go to the game over screen."""
         for sprite in self.sprites:
             sprite.rect.y -= max(self.player.vel.y, 10)
             if sprite.rect.bottom < 0:
@@ -193,51 +197,89 @@ class Game(object):
             self.over_screen()
 
     def splash_screen(self):
+        """Show splash screen."""
         self.screen.fill(settings.BGCOLOR)
-        self.draw_text(
-            f'High score: {self.highscore}', 16, settings.WHITE,
-            (settings.WIDTH/2, 15))
-        self.draw_text(
-            settings.TITLE, 50, settings.WHITE,
-            (settings.WIDTH/2, settings.HEIGHT/4))
-        self.draw_text(
-            '←   → move', 16, settings.WHITE,
-            (settings.WIDTH/2, settings.HEIGHT/2))
-        self.draw_text(
-            '[space] jump', 16, settings.WHITE,
-            (settings.WIDTH/2, settings.HEIGHT/2+40))
-        self.draw_text(
-            'Press any key to start', 16, settings.WHITE,
-            (settings.WIDTH/2, settings.HEIGHT*3/4))
+        text = [
+            {
+                'text': f'High score: {self.highscore}',
+                'size': 16,
+                'color': settings.WHITE,
+                'pos': (settings.WIDTH / 2, 15)
+            },
+            {
+                'text': settings.TITLE,
+                'size': 50,
+                'color': settings.WHITE,
+                'pos': (settings.WIDTH / 2, settings.HEIGHT / 4)
+            },
+            {
+                'text': '←   → move',
+                'size': 16,
+                'color': settings.WHITE,
+                'pos': (settings.WIDTH / 2, settings.HEIGHT / 2)
+            },
+            {
+                'text': '[space] jump',
+                'size': 16,
+                'color': settings.WHITE,
+                'pos': (settings.WIDTH / 2, settings.HEIGHT / 2 + 40)
+            },
+            {
+                'text': 'Press any key to start',
+                'size': 16,
+                'color': settings.WHITE,
+                'pos': (settings.WIDTH / 2, settings.HEIGHT * 3 / 4)
+            }
+        ]
+        for txt in text:
+            self.draw_text(**txt)
         pygame.display.flip()
-        pygame.mixer.music.load(path.join(self._snd_path, 'yippee.wav'))
+        pygame.mixer.music.load(path.join(self._snd_path, settings.SND_INTRO))
         pygame.mixer.music.set_volume(0.3)
         pygame.mixer.music.play(loops=-1)
         self.wait_for_key()
         pygame.mixer.music.fadeout(500)
 
     def over_screen(self):
+        """Show game over screen."""
         self.screen.fill(settings.BGCOLOR)
-        self.draw_text(
-            'GAME OVER', 50, settings.WHITE,
-            (settings.WIDTH/2, settings.HEIGHT/4))
-        self.draw_text(
-            f'Score: {self.player.score}', 16, settings.WHITE,
-            (settings.WIDTH/2, settings.HEIGHT/2))
-        self.draw_text(
-            'Press any key to start again', 16, settings.WHITE,
-            (settings.WIDTH/2, settings.HEIGHT*3/4))
+        text = [
+            {
+                'text': 'GAME OVER',
+                'size': 50,
+                'color': settings.WHITE,
+                'pos': (settings.WIDTH / 2, settings.HEIGHT / 4)
+            },
+            {
+                'text': f'Score: {self.player.score}',
+                'size': 16,
+                'color': settings.WHITE,
+                'pos': (settings.WIDTH / 2, settings.HEIGHT / 2)
+            },
+            {
+                'text': 'Press any key to start again',
+                'size': 16,
+                'color': settings.WHITE,
+                'pos': (settings.WIDTH / 2, settings.HEIGHT * 3 / 4)
+            }
+        ]
         if self.new_highscore:
             msg = 'NEW HIGH SCORE!'
         else:
             msg = f'High score: {self.highscore}'
-        self.draw_text(
-            msg, 16, settings.WHITE,
-            (settings.WIDTH/2, settings.HEIGHT/2+40))
+        text.append({
+            'text': msg,
+            'size': 16,
+            'color': settings.WHITE,
+            'pos': (settings.WIDTH / 2, settings.HEIGHT / 2 + 40)
+        })
+        for txt in text:
+            self.draw_text(**txt)
         pygame.display.flip()
         self.wait_for_key()
 
     def wait_for_key(self):
+        """Wait for any key to be pressed or the window to be closed."""
         while True:
             self.clock.tick(settings.FPS)
             for event in pygame.event.get():
@@ -248,9 +290,10 @@ class Game(object):
                     return
 
     def load_data(self):
+        """Read the last highscore, image and audio files."""
         cur_dir = path.dirname(__file__)
 
-        # load high score saving file
+        # load high score
         self._hs_file_path = path.join(cur_dir, settings.SCORE_FILE)
         try:
             f = open(self._hs_file_path, 'r')
@@ -263,18 +306,19 @@ class Game(object):
         self.spritesheet = Spritesheet(
             path.join(assets_path, settings.SPRITESHEET))
 
-        # load sounds
+        # load audio files
         self._snd_path = path.join(cur_dir, 'media')
         self.jump_sound = pygame.mixer.Sound(
-            path.join(self._snd_path, 'jump.wav'))
+            path.join(self._snd_path, settings.SND_JUMP))
         self.jump_sound.set_volume(0.3)
         self.powerup_sound = pygame.mixer.Sound(
-            path.join(self._snd_path, 'powerup.wav'))
+            path.join(self._snd_path, settings.SND_POW))
         self.powerup_sound.set_volume(0.3)
         self.death_sound = pygame.mixer.Sound(
-            path.join(self._snd_path, 'death.wav'))
+            path.join(self._snd_path, settings.SND_DEATH))
         self.death_sound.set_volume(0.3)
 
     def save_highscore(self):
+        """Save highscore to an external file."""
         with open(self._hs_file_path, 'w') as f:
             f.write(str(self.highscore))
