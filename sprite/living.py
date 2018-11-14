@@ -6,20 +6,44 @@ from sprite.items import Jetpack
 
 
 class LivingBeing(pygame.sprite.Sprite):
-    """Describes common behavior and attributes between living beings."""
+    """Describes common behavior and attributes between living beings.
 
-    def __init__(self, image, pos, groups):
+    Attributes:
+        image_names (list): List of image names that
+                            will be render inside the sprite.
+    """
+    image_names = []
+
+    def __init__(self, game, images, pos, groups):
         """
         Args:
+            game (Game): A reference for the running game.
             image (pygame.Surface): Image surface loaded via pygame.image.load.
             pos (tuple): X and Y axis positions where the sprite will be draw.
             groups (list): A list of pygame.sprite.Group.
         """
         super(LivingBeing, self).__init__(groups)
-        self.image = image
+        self._image_frames(images)
+        self.game = game
+        self.image = images[0]
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
         self.last_update = 0
+
+    def _image_frames(self, images):
+        """Save image list.
+        Override this method in order to give some context to the images."""
+        self.image_frames = images
+
+    @classmethod
+    def new(cls, game, **kwargs):
+        """Create a new instance of the living being.
+
+        Args:
+            game (Game): A reference for the running game.
+        """
+        images = [game.spritesheet.get_image(i) for i in cls.image_names]
+        return cls(game, images, **kwargs)
 
 
 class Player(LivingBeing):
@@ -42,9 +66,7 @@ class Player(LivingBeing):
             pos (tuple): X and Y axis positions where the Player will be draw.
             groups (list): A list of pygame.sprite.Group.
         """
-        super(Player, self).__init__(images[0], pos, groups)
-        self._image_frames(images)
-        self.game = game
+        super(Player, self).__init__(game, images, pos, groups)
         self.walking = False
         self.jumping = False
         self.boosted = False
@@ -224,21 +246,13 @@ class Player(LivingBeing):
 
         # when player gets close to the top initiate the view scrolling
         if self.rect.top <= settings.HEIGHT / 4:
-            self.game.scroll(max(abs(self.vel.y), 2))
+            amount = max(abs(self.vel.y), 2)
+            self.pos.y += amount
+            self.game.scroll(amount)
 
         # if the player falls the game is over
         if self.rect.bottom > settings.HEIGHT:
             self.game.over()
-
-    @classmethod
-    def new(cls, game):
-        """Create a new instance of player.
-
-        Args:
-            game (Game): A reference for the running game.
-        """
-        images = [game.spritesheet.get_image(i) for i in cls.image_names]
-        return cls(game, images, settings.PLAYER_INI_POS, [game.sprites])
 
 
 class Enemy(LivingBeing):
@@ -266,15 +280,14 @@ class FlyMan(Enemy):
         'flyMan_still_jump.png', 'flyMan_still_stand.png'
     ]
 
-    def __init__(self, images, pos, groups):
+    def __init__(self, game, images, pos, groups):
         """
         Args:
             images (list): List of image surfaces loaded via pygame.image.load.
             pos (tuple): X and Y axis positions where the FlyMan will be draw.
             groups (list): A list of pygame.sprite.Group.
         """
-        super(FlyMan, self).__init__(images[0], pos, groups)
-        self.image_frames = images
+        super(FlyMan, self).__init__(game, images, pos, groups)
         self.vx = random.randrange(1, 4)
         self.vy = 0
         self.dy = 0.5
@@ -293,7 +306,9 @@ class FlyMan(Enemy):
         if self.vy > 3 or self.vy < -3:
             self.dy *= -1
 
-        if self.rect.left > settings.WIDTH + 100 or self.rect.right < -100:
+        if (self.rect.left > settings.WIDTH + 100
+                or self.rect.right < -100
+                or self.rect.top >= settings.HEIGHT):
             self.kill()
         else:
             self.animate()

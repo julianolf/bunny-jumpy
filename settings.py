@@ -29,12 +29,6 @@ ENEMIES_LAYER = 2
 
 # initial platforms
 PLATFORM_LAYER = 1
-STAGE_PLATFORMS = (
-    (
-        'ground_grass.png', 'ground_grass_small.png',
-        'ground_grass_broken.png', 'ground_grass_small_broken.png'
-    ),
-)
 PLATFORM_LIST = [
     (5, HEIGHT - 60),
     (WIDTH / 2 - 50, HEIGHT * 3 / 4),

@@ -1,4 +1,5 @@
 import pygame
+import pygame.freetype
 import random
 import settings
 from sprite.living import Player, FlyMan
@@ -9,37 +10,53 @@ from os import path
 
 
 class Game(object):
+    """Game dynamic and rules."""
 
     def __init__(self):
         super(Game, self).__init__()
+        # pygame initialization
         pygame.init()
         pygame.mixer.init()
         pygame.display.set_caption(settings.TITLE)
         self.screen = pygame.display.set_mode(
             (settings.WIDTH, settings.HEIGHT))
+        # define basic counters, controllers and sprite groups
         self.clock = pygame.time.Clock()
         self.running = True
         self.playing = False
-        self.font_name = pygame.font.match_font(settings.FONT_NAME)
-        self.load_data()
-
-    def new(self):
-        self.new_highscore = 0
-        self.mob_timer = 0
-        self.stage = 1
         self.sprites = pygame.sprite.LayeredUpdates()
         self.platforms = pygame.sprite.Group()
         self.clouds = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
         self.enemies = pygame.sprite.Group()
-        self.player = Player.new(self)
-        self.build_platform(settings.PLATFORM_LIST)
-        self.build_cloud(settings.CLOUD_LIST)
+        # load external data
+        self.load_data()
+
+    def new(self):
+        """(Re)Start the game."""
+        self.new_highscore = 0
+        self.enemies_timer = 0
+        self.stage = 1
+        self.sprites.empty()
+        self.platforms.empty()
+        self.clouds.empty()
+        self.powerups.empty()
+        self.enemies.empty()
+        self.player = Player.new(
+            self,
+            pos=settings.PLAYER_INI_POS,
+            groups=[self.sprites]
+        )
+        for pos in settings.PLATFORM_LIST:
+            self.build_platform(pos)
+        for pos in settings.CLOUD_LIST:
+            self.build_cloud(pos)
         pygame.mixer.music.load(path.join(self._snd_path, 'happytune.mp3'))
         pygame.mixer.music.set_volume(1.)
         self.run()
 
     def run(self):
+        """Stage loop."""
         pygame.mixer.music.play(loops=-1)
         self.playing = True
         while self.playing:
@@ -50,6 +67,8 @@ class Game(object):
         pygame.mixer.music.fadeout(500)
 
     def events(self):
+        """Event handler.
+        Decide which action perform based on window and keyboard events."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 if self.playing:
@@ -67,148 +86,98 @@ class Game(object):
                     self.player.cut_jump()
 
     def update(self):
+        """Update screen.
+        Move sprites and/or create new when necessary."""
+
+        # call the update method of all sprites
         self.sprites.update()
 
-        # build new platforms if necessary
-        if len(self.platforms) < len(settings.PLATFORM_LIST):
-            missing = len(settings.PLATFORM_LIST) - len(self.platforms)
-            self.build_platform(amount=missing)
+        # maybe spawn a new enemy
+        self.spawn_enemies()
 
-        # spawn a new mob after ~5sec
+    def draw(self):
+        """Put everything on screen."""
+        self.screen.fill(settings.BGCOLOR)
+        self.sprites.draw(self.screen)
+        score = {
+            'text': f'Score: {self.player.score}',
+            'size': 18,
+            'color': settings.WHITE,
+            'pos': (settings.WIDTH / 2, 15)
+        }
+        self.draw_text(**score)
+        pygame.display.flip()
+
+    def draw_text(self, text, size, color, pos):
+        """Draw text on screen."""
+        font = pygame.freetype.SysFont(settings.FONT_NAME, size)
+        text_surface, text_rect = font.render(text, pygame.Color(*color))
+        text_rect.midtop = pos
+        self.screen.blit(text_surface, text_rect)
+
+    def update_scenario(self):
+        """Create new platforms and add clouds."""
+        missing = len(settings.PLATFORM_LIST) - len(self.platforms)
+        if missing > 0:
+            for _ in range(missing):
+                self.build_platform()
+
+        if random.randrange(100) < 5:
+            self.build_cloud()
+
+    def spawn_enemies(self):
+        """Spawn a new enemy every ~5sec."""
         now = pygame.time.get_ticks()
-        if (now - self.mob_timer >
-                (settings.MOB_FREQ + random.choice(
-                    [-1000, -500, 0, 500, 1000]))):
-            self.mob_timer = now
-            images = [
-                self.spritesheet.get_image(image_name)
-                for image_name in FlyMan.image_names
-            ]
+        elapsed = now - self.enemies_timer
+        variation = random.choice([-1000, -500, 0, 500, 1000])
+        frequency = settings.MOB_FREQ + variation
+        if elapsed > frequency:
+            self.enemies_timer = now
             pos = (
                 random.choice([-100, settings.WIDTH + 100]),
                 random.randrange(settings.HEIGHT / 2)
             )
             groups = [self.sprites, self.enemies]
-            FlyMan(images, pos, groups)
+            FlyMan.new(self, pos=pos, groups=groups)
 
-    def draw(self):
-        self.screen.fill(settings.BGCOLOR)
-        self.sprites.draw(self.screen)
-        self.draw_text(
-            f'Score: {self.player.score}', 18, settings.WHITE,
-            (settings.WIDTH / 2, 15))
-        pygame.display.flip()
+    def build_platform(self, pos=None):
+        """Build a new platform with a chance of having a powerup."""
+        if not pos:
+            pos = (random.randrange(0, settings.WIDTH - 380),
+                   random.randrange(-64, -32))
 
-    def draw_text(self, text, size, color, pos):
-        font = pygame.font.Font(self.font_name, size)
-        text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect()
-        text_rect.midtop = pos
-        self.screen.blit(text_surface, text_rect)
+        plat_groups = [self.sprites, self.platforms]
+        plat = Platform.new(self, pos=pos, groups=plat_groups)
+        if random.randrange(100) < settings.POW_SPAWN_PCT:
+            powr_groups = [self.sprites, self.powerups]
+            Jetpack.new(
+                self,
+                platform=plat,
+                groups=powr_groups
+            )
 
-    def build_platform(self, specs=None, amount=0):
-        groups = [self.sprites, self.platforms]
+    def build_cloud(self, pos=None):
+        """Build a new cloud."""
+        if not pos:
+            pos = (random.randrange(settings.WIDTH - 260),
+                   random.randrange(-500, -50))
 
-        if specs:
-            if type(specs) == list:
-                for pos in specs:
-                    image = self.spritesheet.get_image(
-                        random.choice(
-                            settings.STAGE_PLATFORMS[self.stage - 1]
-                        )
-                    )
-                    plat = Platform(image, pos, groups)
-                    if random.randrange(100) < settings.POW_SPAWN_PCT:
-                        image = self.spritesheet.get_image(Jetpack.image_name)
-                        Jetpack(image, plat, [self.sprites, self.powerups])
-            elif type(specs) == dict:
-                image = self.spritesheet.get_image(
-                    random.choice(
-                        settings.STAGE_PLATFORMS[self.stage - 1]
-                    )
-                )
-                plat = Platform(image, specs, groups)
-                if random.randrange(100) < settings.POW_SPAWN_PCT:
-                    image = self.spritesheet.get_image(Jetpack.image_name)
-                    Jetpack(image, plat, [self.sprites, self.powerups])
-        else:
-            if amount:
-                for _ in range(amount):
-                    image = self.spritesheet.get_image(
-                        random.choice(
-                            settings.STAGE_PLATFORMS[self.stage - 1]
-                        )
-                    )
-                    pos = (
-                        random.randrange(0, settings.WIDTH - image.get_rect().width),
-                        random.randrange(-64, -32)
-                    )
-                    plat = Platform(image, pos, groups)
-                    if random.randrange(100) < settings.POW_SPAWN_PCT:
-                        image = self.spritesheet.get_image(Jetpack.image_name)
-                        Jetpack(image, plat, [self.sprites, self.powerups])
-            else:
-                image = self.spritesheet.get_image(
-                    random.choice(
-                        settings.STAGE_PLATFORMS[self.stage - 1]
-                    )
-                )
-                pos = (
-                    random.randrange(0, settings.WIDTH - image.get_rect().width),
-                    random.randrange(-64, -32)
-                )
-                plat = Platform(image, pos, groups)
-                if random.randrange(100) < settings.POW_SPAWN_PCT:
-                    image = self.spritesheet.get_image(Jetpack.image_name)
-                    Jetpack(image, plat, [self.sprites, self.powerups])
-
-    def build_cloud(self, specs=None, amount=0):
         groups = [self.sprites, self.clouds]
-        if specs:
-            if type(specs) == list:
-                for pos in specs:
-                    image = self.spritesheet.get_image(Cloud.image_name)
-                    Cloud(image, pos, groups)
-            elif type(specs) == tuple:
-                image = self.spritesheet.get_image(Cloud.image_name)
-                Cloud(self, image, specs, groups)
-        else:
-            if amount:
-                for _ in range(amount):
-                    image = self.spritesheet.get_image(Cloud.image_name)
-                    pos = (
-                        random.randrange(settings.WIDTH - image.get_rect().width),
-                        random.randrange(-500, -50)
-                    )
-                    Cloud(image, pos, groups)
-            else:
-                image = self.spritesheet.get_image(Cloud.image_name)
-                pos = (
-                    random.randrange(settings.WIDTH - image.get_rect().width),
-                    random.randrange(-500, -50)
-                )
-                Cloud(image, pos, groups)
+        Cloud.new(self, pos=pos, groups=groups)
 
     def scroll(self, amount):
-        self.player.pos.y += amount
+        """Simulate window scrolling by moving everything but the player down.
+        Also adding new platforms and clouds if necessary."""
+        self.update_scenario()
 
         for cloud in self.clouds:
-            cloud.rect.y += max(abs(self.player.vel.y / 2), 2)
-
-        for mob in self.enemies:
-            mob.rect.y += amount
-            if mob.rect.top >= settings.HEIGHT:
-                mob.kill()
-
-        for plat in self.platforms:
-            plat.rect.y += amount
-            if plat.rect.top >= settings.HEIGHT:
-                plat.kill()
+            cloud.rect.y += max(amount // 2, 2)
+        for enemy in self.enemies:
+            enemy.rect.y += amount
+        for platform in self.platforms:
+            platform.rect.y += amount
+            if platform.rect.top >= settings.HEIGHT:
                 self.player.score += 1
-
-        # spawn new clouds
-        if random.randrange(100) < 5:
-            self.build_cloud()
 
     def over(self):
         for sprite in self.sprites:

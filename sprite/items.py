@@ -32,6 +32,16 @@ class Powerup(pygame.sprite.Sprite):
         else:
             self.rect.bottom = self.platform.rect.top - 5
 
+    @classmethod
+    def new(cls, game, **kwargs):
+        """Create a new instance of a power up.
+
+        Args:
+            game (Game): A reference for the running game.
+        """
+        image = game.spritesheet.get_image(cls.image_name)
+        return cls(image, **kwargs)
+
 
 class Jetpack(Powerup):
     """Describes a Jetpack.
