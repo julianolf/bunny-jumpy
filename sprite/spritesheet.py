@@ -57,6 +57,6 @@ class Spritesheet(object):
         x, y, width, height = self.get_info(image_name)
         image = pygame.Surface((width, height))
         image.blit(self.image, (0, 0), (x, y, width, height))
-        image = pygame.transform.scale(image, (width // 2, height // 2))
+        image = pygame.transform.scale(image, (width * 2//5, height * 2//5))
         image.set_colorkey(self.color_key)
         return image

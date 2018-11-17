@@ -1,10 +1,11 @@
+import csv
 import pygame
 import pygame.freetype
 import random
 import settings
 from sprite.living import Player, FlyMan
 from sprite.inanimate import Platform, Cloud
-from sprite.items import Jetpack
+from sprite.items import Carrot, Jetpack
 from sprite.spritesheet import Spritesheet
 from os import path
 
@@ -24,10 +25,11 @@ class Game(object):
         self.clock = pygame.time.Clock()
         self.running = True
         self.playing = False
+        self.stage = 0
         self.sprites = pygame.sprite.LayeredUpdates()
         self.platforms = pygame.sprite.Group()
         self.clouds = pygame.sprite.Group()
-        self.powerups = pygame.sprite.Group()
+        self.items = pygame.sprite.Group()
         self.enemies = pygame.sprite.Group()
         # load external data
         self.load_data()
@@ -40,17 +42,14 @@ class Game(object):
         self.sprites.empty()
         self.platforms.empty()
         self.clouds.empty()
-        self.powerups.empty()
+        self.items.empty()
         self.enemies.empty()
+        self.update_scenario()
         self.player = Player.new(
             self,
             pos=settings.PLAYER_INI_POS,
             groups=[self.sprites]
         )
-        for pos in settings.PLATFORM_LIST:
-            self.build_platform(pos)
-        for pos in settings.CLOUD_LIST:
-            self.build_cloud(pos)
         pygame.mixer.music.load(path.join(self._snd_path, settings.SND_MAIN))
         pygame.mixer.music.set_volume(1.)
         self.run()
@@ -97,7 +96,7 @@ class Game(object):
 
     def draw(self):
         """Put everything on screen."""
-        self.screen.fill(settings.BGCOLOR)
+        self.screen.fill(settings.STAGES_BGCOLOR[self.stage])
         self.sprites.draw(self.screen)
         score = {
             'text': f'Score: {self.player.score}',
@@ -117,13 +116,10 @@ class Game(object):
 
     def update_scenario(self):
         """Create new platforms and add clouds."""
-        missing = len(settings.PLATFORM_LIST) - len(self.platforms)
-        if missing > 0:
-            for _ in range(missing):
-                self.build_platform()
-
-        if random.randrange(100) < 5:
-            self.build_cloud()
+        with open(self._specs_file, 'r') as file:
+            reader = csv.reader(file)
+            for img, x, y, item in reader:
+                self.build_platform(img, (int(x), int(y)), item)
 
     def spawn_enemies(self):
         """Spawn a new enemy every ~5sec."""
@@ -140,21 +136,15 @@ class Game(object):
             groups = [self.sprites, self.enemies]
             FlyMan.new(self, pos=pos, groups=groups)
 
-    def build_platform(self, pos=None):
-        """Build a new platform with a chance of having a powerup."""
-        if not pos:
-            pos = (random.randrange(0, settings.WIDTH - 380),
-                   random.randrange(-64, -32))
-
+    def build_platform(self, img, pos, item=None):
+        """Build a new platform."""
         plat_groups = [self.sprites, self.platforms]
-        plat = Platform.new(self, pos=pos, groups=plat_groups)
-        if random.randrange(100) < settings.POW_SPAWN_PCT:
-            powr_groups = [self.sprites, self.powerups]
-            Jetpack.new(
-                self,
-                platform=plat,
-                groups=powr_groups
-            )
+        plat = Platform.new(self, img, pos=pos, groups=plat_groups)
+        items = {'carrot': Carrot, 'jetpack': Jetpack}
+        if item and item in items:
+            item_groups = [self.sprites, self.items]
+            item_clss = items[item]
+            item_clss.new(self, platform=plat, groups=item_groups)
 
     def build_cloud(self, pos=None):
         """Build a new cloud."""
@@ -168,8 +158,6 @@ class Game(object):
     def scroll(self, amount):
         """Simulate window scrolling by moving everything but the player down.
         Also adding new platforms and clouds if necessary."""
-        self.update_scenario()
-
         for cloud in self.clouds:
             cloud.rect.y += max(amount // 2, 2)
         for enemy in self.enemies:
@@ -198,7 +186,7 @@ class Game(object):
 
     def splash_screen(self):
         """Show splash screen."""
-        self.screen.fill(settings.BGCOLOR)
+        self.screen.fill(settings.STAGES_BGCOLOR[self.stage])
         text = [
             {
                 'text': f'High score: {self.highscore}',
@@ -242,7 +230,7 @@ class Game(object):
 
     def over_screen(self):
         """Show game over screen."""
-        self.screen.fill(settings.BGCOLOR)
+        self.screen.fill(settings.STAGES_BGCOLOR[self.stage])
         text = [
             {
                 'text': 'GAME OVER',
@@ -305,6 +293,9 @@ class Game(object):
         assets_path = path.join(cur_dir, 'assets')
         self.spritesheet = Spritesheet(
             path.join(assets_path, settings.SPRITESHEET))
+
+        # save platforms file path
+        self._specs_file = path.join(cur_dir, settings.PLATFORMS_FILE)
 
         # load audio files
         self._snd_path = path.join(cur_dir, 'media')

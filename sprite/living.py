@@ -2,7 +2,7 @@ import pygame
 import settings
 import random
 from pygame.math import Vector2
-from sprite.items import Jetpack
+from sprite.items import Carrot, Jetpack
 
 
 class LivingBeing(pygame.sprite.Sprite):
@@ -158,12 +158,14 @@ class Player(LivingBeing):
             if self.vel.y < -6:
                 self.vel.y = -6
 
-    def hit_powerup(self):
-        """Check if the player hitted a powerup."""
+    def hit_item(self):
+        """Check if the player hitted an item."""
         if self.alive:
             for hit in pygame.sprite.spritecollide(
-                    self, self.game.powerups, True):
-                if isinstance(hit, Jetpack):
+                    self, self.game.items, True):
+                if isinstance(hit, Carrot):
+                    return
+                elif isinstance(hit, Jetpack):
                     self.boosted = True
                     self.vel.y = settings.BOOST_POWER
                     self.game.powerup_sound.play()
@@ -233,7 +235,7 @@ class Player(LivingBeing):
         self.walk()
 
         # check for poweups
-        self.hit_powerup()
+        self.hit_item()
 
         # check if hit a mob
         self.hit_enemy()
@@ -317,7 +319,7 @@ class FlyMan(Enemy):
         """Switch between image frames."""
         now = pygame.time.get_ticks()
 
-        if now - self.last_update > 50:
+        if now - self.last_update > settings.FPS:
             self.last_update = now
             center = self.rect.center
             if self.dy < 0:  # going up

@@ -11,6 +11,7 @@ TILE_SIZE = 32
 # external files
 SCORE_FILE = '.highestscore'
 SPRITESHEET = 'spritesheet.png'
+PLATFORMS_FILE = 'platforms.csv'
 SND_INTRO = 'yippee.wav'
 SND_MAIN = 'happytune.mp3'
 SND_JUMP = 'jump.wav'
@@ -18,7 +19,7 @@ SND_POW = 'powerup.wav'
 SND_DEATH = 'death.wav'
 
 # player properties
-PLAYER_INI_POS = (50, HEIGHT * 3 / 4)
+PLAYER_INI_POS = (55, HEIGHT * 3 / 4)
 PLAYER_ACC = 0.5
 PLAYER_FRICTION = -0.12
 PLAYER_STRENGTH = -20
@@ -50,11 +51,12 @@ CLOUD_LIST = [
 PLAYER_LAYER = 2
 ENEMIES_LAYER = 2
 PLATFORM_LAYER = 1
-POWERUP_LAYER = 1
+ITEMS_LAYER = 1
 CLOUD_LAYER = 0
 
 # colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-LIGHTBLUE = (0, 190, 240)
-BGCOLOR = LIGHTBLUE
+BLUESKY = (0, 190, 240)
+DESERTSKY = (247, 230, 220)
+STAGES_BGCOLOR = [BLUESKY, DESERTSKY]
