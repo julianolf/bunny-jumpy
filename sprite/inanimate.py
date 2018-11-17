@@ -84,9 +84,9 @@ class Cloud(Inanimate):
     def __init__(self, image, pos=(0, 0), groups=[]):
         """
         Args:
-            image (pygame.Surface): Platform image surface.
+            image (pygame.Surface): Cloud image surface.
             pos (tuple): X and Y axis positions.
-            groups (list): The list of groups the platform belongs to.
+            groups (list): The list of groups the cloud belongs to.
         """
         super(Cloud, self).__init__(image, pos, groups)
 
@@ -96,11 +96,15 @@ class Cloud(Inanimate):
             self.kill()
 
     @classmethod
-    def new(cls, game, **kwargs):
+    def new(cls, image, **kwargs):
         """Create a new instance of a cloud.
 
         Args:
-            game (Game): A reference for the running game.
+            image (pygame.Surface): Cloud image surface.
         """
-        image = game.spritesheet.get_image(cls.image_name)
-        return cls(image, **kwargs)
+        width = image.get_width()
+        height = image.get_height()
+        scale = random.randint(30, 101) / 100
+        size = (int(width * scale), int(height * scale))
+        img = pygame.transform.scale(image, size)
+        return cls(img, **kwargs)

@@ -119,7 +119,12 @@ class Game(object):
         with open(self._specs_file, 'r') as file:
             reader = csv.reader(file)
             for img, x, y, item in reader:
-                self.build_platform(img, (int(x), int(y)), item)
+                x, y = int(x), int(y)
+                # build a new platform
+                self.build_platform(img, (x, y), item)
+                # generate ramdom clouds
+                for _ in range(random.randint(1, 3)):
+                    self.build_cloud(y)
 
     def spawn_enemies(self):
         """Spawn a new enemy every ~5sec."""
@@ -137,7 +142,13 @@ class Game(object):
             FlyMan.new(self, pos=pos, groups=groups)
 
     def build_platform(self, img, pos, item=None):
-        """Build a new platform."""
+        """Build a new platform.
+
+        Args:
+            img (str): A platform image name.
+            pos (tuple): X and Y axis positions.
+            item (str): The name of the item to be put on the platform.
+        """
         plat_groups = [self.sprites, self.platforms]
         plat = Platform.new(self, img, pos=pos, groups=plat_groups)
         items = {'carrot': Carrot, 'jetpack': Jetpack}
@@ -146,20 +157,34 @@ class Game(object):
             item_clss = items[item]
             item_clss.new(self, platform=plat, groups=item_groups)
 
-    def build_cloud(self, pos=None):
-        """Build a new cloud."""
-        if not pos:
-            pos = (random.randrange(settings.WIDTH - 260),
-                   random.randrange(-500, -50))
+    def build_cloud(self, pos_y=None):
+        """Build a new cloud.
+
+        The new cloud will have a random size and position.
+
+        Args:
+            pos_y (int): A Y axis value just for reference.
+                         The cloud will be around this area.
+        """
+        if not pos_y:
+            # 67 is the default height of the cloud
+            pos_y = random.randrange(settings.HEIGHT - 67)
+        # 130 is the default width of the cloud
+        pos = (random.randrange(settings.WIDTH - 130),
+               pos_y - random.randrange(-100, 100))
 
         groups = [self.sprites, self.clouds]
-        Cloud.new(self, pos=pos, groups=groups)
+        Cloud.new(self.cloud_image, pos=pos, groups=groups)
 
     def scroll(self, amount):
         """Simulate window scrolling by moving everything but the player down.
-        Also adding new platforms and clouds if necessary."""
+        Also adding new platforms and clouds if necessary.
+
+        Args:
+            amount (int): How much pixels the screen will scroll down.
+        """
         for cloud in self.clouds:
-            cloud.rect.y += max(amount // 2, 2)
+            cloud.rect.y += max(amount // 3, 1)
         for enemy in self.enemies:
             enemy.rect.y += amount
         for platform in self.platforms:
@@ -293,6 +318,15 @@ class Game(object):
         assets_path = path.join(cur_dir, 'assets')
         self.spritesheet = Spritesheet(
             path.join(assets_path, settings.SPRITESHEET))
+
+        # load cloud image
+        cloud_image = pygame.image.load(
+            path.join(assets_path, Cloud.image_name)).convert()
+        cloud_image = pygame.transform.scale(
+            cloud_image, (cloud_image.get_width() // 2,
+                          cloud_image.get_height() // 2))
+        cloud_image.set_colorkey(settings.BLACK)
+        self.cloud_image = cloud_image
 
         # save platforms file path
         self._specs_file = path.join(cur_dir, settings.PLATFORMS_FILE)
