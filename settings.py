@@ -30,6 +30,7 @@ MOB_FREQ = 5000
 
 # items properties
 BOOST_POWER = -60
+BOOST_SPRING = -120
 POW_SPAWN_PCT = 7
 
 # initial platforms

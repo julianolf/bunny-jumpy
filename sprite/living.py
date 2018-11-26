@@ -170,6 +170,22 @@ class Player(LivingBeing):
                     self.vel.y = settings.BOOST_POWER
                     self.game.powerup_sound.play()
 
+    def hit_spring(self):
+        """Check if the player hitted an spring."""
+        if self.alive:
+            for hit in pygame.sprite.spritecollide(
+                    self, self.game.springs, False):
+                edges = [
+                    self.rect.bottom in range(hit.rect.top, hit.rect.top + 10),
+                    self.pos.x > (hit.rect.left - 10),
+                    self.pos.x < (hit.rect.right + 10)
+                ]
+                if all(edges):
+                    hit.fired = True
+                    self.boosted = True
+                    self.vel.y = settings.BOOST_SPRING
+                    self.game.powerup_sound.play()
+
     def hit_enemy(self):
         """Check if the player hitted a enemy."""
         if self.alive:
@@ -236,6 +252,9 @@ class Player(LivingBeing):
 
         # check for poweups
         self.hit_item()
+
+        # check for springs
+        self.hit_spring()
 
         # check if hit a mob
         self.hit_enemy()

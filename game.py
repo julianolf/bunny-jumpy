@@ -4,7 +4,7 @@ import pygame.freetype
 import random
 import settings
 from sprite.living import Player, FlyMan
-from sprite.inanimate import Platform, Cloud
+from sprite.inanimate import Platform, Spring, Cloud
 from sprite.items import Carrot, Jetpack
 from sprite.spritesheet import Spritesheet
 from os import path
@@ -28,6 +28,7 @@ class Game(object):
         self.stage = 0
         self.sprites = pygame.sprite.LayeredUpdates()
         self.platforms = pygame.sprite.Group()
+        self.springs = pygame.sprite.Group()
         self.clouds = pygame.sprite.Group()
         self.items = pygame.sprite.Group()
         self.enemies = pygame.sprite.Group()
@@ -41,6 +42,7 @@ class Game(object):
         self.stage = 1
         self.sprites.empty()
         self.platforms.empty()
+        self.springs.empty()
         self.clouds.empty()
         self.items.empty()
         self.enemies.empty()
@@ -151,9 +153,10 @@ class Game(object):
         """
         plat_groups = [self.sprites, self.platforms]
         plat = Platform.new(self, img, pos=pos, groups=plat_groups)
-        items = {'carrot': Carrot, 'jetpack': Jetpack}
+        items = {'carrot': Carrot, 'jetpack': Jetpack, 'spring': Spring}
         if item and item in items:
-            item_groups = [self.sprites, self.items]
+            group = self.springs if item == 'spring' else self.items
+            item_groups = [self.sprites, group]
             item_clss = items[item]
             item_clss.new(self, platform=plat, groups=item_groups)
 

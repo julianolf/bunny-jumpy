@@ -71,6 +71,72 @@ class Platform(Inanimate):
         return cls(image, **kwargs)
 
 
+class Spring(Inanimate):
+    """Describes springs.
+
+    Attributes:
+        _layer (int): The layer where the spring will be draw.
+        image_names (list): List of image names that
+                            will be render inside the sprite.
+    """
+    _layer = settings.PLATFORM_LAYER
+    image_names = ['spring.png', 'spring_in.png', 'spring_out.png']
+
+    def __init__(self, images, platform, pos=(0, 0), groups=[]):
+        """
+        Args:
+            images (list): List of spring image surfaces.
+            platform (Platform): A platform where the spring will be attached.
+            pos (tuple): X and Y axis positions.
+            groups (list): The list of groups the spring belongs to.
+        """
+        super(Spring, self).__init__(images[0], pos, groups)
+        self.frames = images
+        self.platform = platform
+        self.rect.centerx = self.platform.rect.centerx
+        self.rect.bottom = self.platform.rect.top
+        self.fired = False
+        self.last_update = 0
+
+    def animate(self):
+        """Switch between image frames."""
+        now = pygame.time.get_ticks()
+
+        if self.fired:
+            if now - self.last_update > 100:
+                self.last_update = now
+                centerx = self.rect.centerx
+                bottom = self.rect.bottom
+                index = (self.frames.index(self.image) + 1) % 3
+                self.image = self.frames[index]
+                self.rect = self.image.get_rect()
+                self.rect.centerx = centerx
+                self.rect.bottom = bottom
+                self.fired = bool(index)
+
+    def update(self):
+        """Kills spring if its platform does not exist anymore
+        or update its position following the platform."""
+        if self.platform and not self.platform.alive():
+            self.kill()
+        else:
+            self.rect.bottom = self.platform.rect.top
+
+        # animate spring sprite
+        self.animate()
+
+    @classmethod
+    def new(cls, game, platform, **kwargs):
+        """Create a new instance of a spring.
+
+        Args:
+            game (Game): A reference for the running game.
+            platform (Platform): A platform where the spring will be attached.
+        """
+        images = [game.spritesheet.get_image(img) for img in cls.image_names]
+        return cls(images, platform, **kwargs)
+
+
 class Cloud(Inanimate):
     """Describes clouds.
 
