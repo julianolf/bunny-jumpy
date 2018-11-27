@@ -8,6 +8,7 @@ from sprite.inanimate import Platform, Spring, Cloud
 from sprite.items import Carrot, Jetpack
 from sprite.spritesheet import Spritesheet
 from os import path
+from itertools import islice
 
 
 class Game(object):
@@ -120,7 +121,8 @@ class Game(object):
         """Create new platforms and add clouds."""
         with open(self._specs_file, 'r') as file:
             reader = csv.reader(file)
-            for img, x, y, item in reader:
+            start, stop = settings.SPEC_LINES[self.stage]
+            for img, x, y, item in islice(reader, start, stop):
                 x, y = int(x), int(y)
                 # build a new platform
                 self.build_platform(img, (x, y), item)
@@ -194,6 +196,25 @@ class Game(object):
             platform.rect.y += amount
             if platform.rect.top >= settings.HEIGHT:
                 self.player.score += 1
+
+    def stage_clear(self):
+        """Stage clear.
+
+        Adds to the highest platform a spring to jump
+        to the next stage, and loads the next stage
+        platforms and items.
+        """
+        platforms = self.platforms.sprites()
+        if len(platforms):
+            highest_platform = platforms[0]
+            for plat in platforms:
+                if plat.rect.y < highest_platform.rect.y:
+                    highest_platform = plat
+            groups = [self.sprites, self.springs]
+            Spring.new(self, platform=highest_platform, groups=groups)
+            self.show_spring_sound.play()
+            self.stage += 1
+            self.update_scenario()
 
     def over(self):
         """End the game.
@@ -345,6 +366,12 @@ class Game(object):
         self.death_sound = pygame.mixer.Sound(
             path.join(self._snd_path, settings.SND_DEATH))
         self.death_sound.set_volume(0.3)
+        self.show_spring_sound = pygame.mixer.Sound(
+            path.join(self._snd_path, settings.SND_SHOW_SPRING))
+        self.show_spring_sound.set_volume(0.3)
+        self.spring_sound = pygame.mixer.Sound(
+            path.join(self._snd_path, settings.SND_SPRING))
+        self.spring_sound.set_volume(0.3)
 
     def save_highscore(self):
         """Save highscore to an external file."""

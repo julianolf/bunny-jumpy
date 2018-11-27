@@ -17,6 +17,8 @@ SND_MAIN = 'happytune.mp3'
 SND_JUMP = 'jump.wav'
 SND_POW = 'powerup.wav'
 SND_DEATH = 'death.wav'
+SND_SHOW_SPRING = 'showspring.wav'
+SND_SPRING = 'spring.wav'
 
 # player properties
 PLAYER_INI_POS = (55, HEIGHT * 3 / 4)
@@ -33,21 +35,6 @@ BOOST_POWER = -60
 BOOST_SPRING = -120
 POW_SPAWN_PCT = 7
 
-# initial platforms
-PLATFORM_LIST = [
-    (5, HEIGHT - 60),
-    (WIDTH / 2 - 50, HEIGHT * 3 / 4),
-    (125, HEIGHT - 350),
-    (280, 200),
-    (175, 100)
-]
-
-# initial clouds
-CLOUD_LIST = [
-    (15, 15), (WIDTH * 3 / 4, 50), (WIDTH / 2, HEIGHT / 2),
-    (50, HEIGHT * 2 / 3), (WIDTH * 3 / 4, HEIGHT * 2 / 3 + 20)
-]
-
 # layers
 PLAYER_LAYER = 2
 ENEMIES_LAYER = 2
@@ -55,9 +42,13 @@ PLATFORM_LAYER = 1
 ITEMS_LAYER = 1
 CLOUD_LAYER = 0
 
+# platforms
+SPEC_LINES = (None, (0, 25), (25, 28))
+
 # colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BLUESKY = (0, 190, 240)
 DESERTSKY = (247, 230, 220)
-STAGES_BGCOLOR = [BLUESKY, DESERTSKY]
+LIGHTBLUESKY = (173, 230, 255)
+STAGES_BGCOLOR = [BLUESKY, DESERTSKY, LIGHTBLUESKY]

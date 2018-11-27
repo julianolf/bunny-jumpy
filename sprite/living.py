@@ -164,7 +164,8 @@ class Player(LivingBeing):
             for hit in pygame.sprite.spritecollide(
                     self, self.game.items, True):
                 if isinstance(hit, Carrot):
-                    return
+                    self.game.stage_clear()
+                    break
                 elif isinstance(hit, Jetpack):
                     self.boosted = True
                     self.vel.y = settings.BOOST_POWER
@@ -175,16 +176,19 @@ class Player(LivingBeing):
         if self.alive:
             for hit in pygame.sprite.spritecollide(
                     self, self.game.springs, False):
-                edges = [
-                    self.rect.bottom in range(hit.rect.top, hit.rect.top + 10),
-                    self.pos.x > (hit.rect.left - 10),
-                    self.pos.x < (hit.rect.right + 10)
-                ]
-                if all(edges):
-                    hit.fired = True
-                    self.boosted = True
-                    self.vel.y = settings.BOOST_SPRING
-                    self.game.powerup_sound.play()
+                if not hit.fired:
+                    edges = [
+                        self.rect.bottom in range(hit.rect.top,
+                                                  hit.rect.top + 10),
+                        self.pos.x > (hit.rect.left - 10),
+                        self.pos.x < (hit.rect.right + 10)
+                    ]
+                    if all(edges):
+                        hit.fired = True
+                        self.boosted = True
+                        self.vel.y = settings.BOOST_SPRING
+                        self.game.spring_sound.play()
+                        break
 
     def hit_enemy(self):
         """Check if the player hitted a enemy."""
