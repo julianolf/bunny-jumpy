@@ -105,3 +105,6 @@ venv.bak/
 
 # highscore saving file
 .highestscore
+
+# ignore vscode settings
+.vscode/
