@@ -9,6 +9,10 @@ pygame = "*"
 [dev-packages]
 "flake8" = "*"
 ipdb = "*"
+black = "*"
 
 [requires]
 python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
