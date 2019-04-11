@@ -1,6 +1,6 @@
 # general
-TITLE = 'Bunny Jumpy'
-FONT_NAME = 'arial'
+TITLE = "Bunny Jumpy"
+FONT_NAME = "arial"
 
 # screen and sprites
 FPS = 60
@@ -9,16 +9,16 @@ HEIGHT = 640
 TILE_SIZE = 32
 
 # external files
-SCORE_FILE = '.highestscore'
-SPRITESHEET = 'spritesheet.png'
-PLATFORMS_FILE = 'platforms.csv'
-SND_INTRO = 'yippee.wav'
-SND_MAIN = 'happytune.mp3'
-SND_JUMP = 'jump.wav'
-SND_POW = 'powerup.wav'
-SND_DEATH = 'death.wav'
-SND_SHOW_SPRING = 'showspring.wav'
-SND_SPRING = 'spring.wav'
+SCORE_FILE = ".highestscore"
+SPRITESHEET = "spritesheet.png"
+PLATFORMS_FILE = "platforms.csv"
+SND_INTRO = "yippee.wav"
+SND_MAIN = "happytune.mp3"
+SND_JUMP = "jump.wav"
+SND_POW = "powerup.wav"
+SND_DEATH = "death.wav"
+SND_SHOW_SPRING = "showspring.wav"
+SND_SPRING = "spring.wav"
 
 # player properties
 PLAYER_INI_POS = (55, HEIGHT * 3 / 4)

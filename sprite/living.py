@@ -1,7 +1,9 @@
-import pygame
-import settings
 import random
+
+import pygame
 from pygame.math import Vector2
+
+import settings
 from sprite.items import Carrot, Jetpack
 
 
@@ -12,6 +14,7 @@ class LivingBeing(pygame.sprite.Sprite):
         image_names (list): List of image names that
                             will be render inside the sprite.
     """
+
     image_names = []
 
     def __init__(self, game, images, pos, groups):
@@ -52,10 +55,15 @@ class Player(LivingBeing):
         _layer (int): The layer where the player will be draw.
         image_names (list): List of Bunny image names.
     """
+
     _layer = settings.PLAYER_LAYER
     image_names = [
-        'bunny1_stand.png', 'bunny1_ready.png', 'bunny1_jump.png',
-        'bunny1_hurt.png', 'bunny1_walk1.png', 'bunny1_walk2.png'
+        "bunny1_stand.png",
+        "bunny1_ready.png",
+        "bunny1_jump.png",
+        "bunny1_hurt.png",
+        "bunny1_walk1.png",
+        "bunny1_walk2.png",
     ]
 
     def __init__(self, game, images, pos=(0, 0), groups=[]):
@@ -84,29 +92,33 @@ class Player(LivingBeing):
             images (list): List of image surfaces loaded via pygame.image.load.
         """
         self.image_frames = {
-            'jump': images[2],
-            'hurt': images[3],
-            'stand': images[:2],
-            'walkr': images[4:],
-            'walkl': []
+            "jump": images[2],
+            "hurt": images[3],
+            "stand": images[:2],
+            "walkr": images[4:],
+            "walkl": [],
         }
 
-        for frame in self.image_frames['walkr']:
-            self.image_frames['walkl'].append(
-                pygame.transform.flip(frame, True, False))
+        for frame in self.image_frames["walkr"]:
+            self.image_frames["walkl"].append(
+                pygame.transform.flip(frame, True, False)
+            )
 
     def standing(self):
         """Check if the player is standing over a platform."""
         if self.vel.y > 0 and self.alive:
             hits = pygame.sprite.spritecollide(
-                self, self.game.platforms, False)
+                self, self.game.platforms, False
+            )
             if hits:
                 lowest = hits[0]
                 for hit in hits:
                     if hit.rect.bottom > lowest.rect.bottom:
                         lowest = hit
-                if (self.pos.x < lowest.rect.right + 10
-                        and self.pos.x > lowest.rect.left - 10):
+                if (
+                    self.pos.x < lowest.rect.right + 10
+                    and self.pos.x > lowest.rect.left - 10
+                ):
                     if self.pos.y < lowest.rect.centery:
                         self.pos.y = lowest.rect.top
                         self.vel.y = 0
@@ -162,7 +174,8 @@ class Player(LivingBeing):
         """Check if the player hitted an item."""
         if self.alive:
             for hit in pygame.sprite.spritecollide(
-                    self, self.game.items, True):
+                self, self.game.items, True
+            ):
                 if isinstance(hit, Carrot):
                     self.game.stage_clear()
                     break
@@ -175,13 +188,14 @@ class Player(LivingBeing):
         """Check if the player hitted an spring."""
         if self.alive:
             for hit in pygame.sprite.spritecollide(
-                    self, self.game.springs, False):
+                self, self.game.springs, False
+            ):
                 if not hit.fired:
                     edges = [
-                        self.rect.bottom in range(hit.rect.top,
-                                                  hit.rect.top + 10),
+                        self.rect.bottom
+                        in range(hit.rect.top, hit.rect.top + 10),
                         self.pos.x > (hit.rect.left - 10),
-                        self.pos.x < (hit.rect.right + 10)
+                        self.pos.x < (hit.rect.right + 10),
                     ]
                     if all(edges):
                         hit.fired = True
@@ -194,8 +208,8 @@ class Player(LivingBeing):
         """Check if the player hitted a enemy."""
         if self.alive:
             for hit in pygame.sprite.spritecollide(
-                    self, self.game.enemies, False,
-                    pygame.sprite.collide_mask):
+                self, self.game.enemies, False, pygame.sprite.collide_mask
+            ):
                 self.alive = False
                 self.game.death_sound.play()
 
@@ -207,7 +221,7 @@ class Player(LivingBeing):
             if now - self.last_update > 100:
                 self.last_update = now
                 bottom = self.rect.bottom
-                self.image = self.image_frames['hurt']
+                self.image = self.image_frames["hurt"]
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
 
@@ -215,7 +229,7 @@ class Player(LivingBeing):
             if now - self.last_update > 100:
                 self.last_update = now
                 bottom = self.rect.bottom
-                self.image = self.image_frames['jump']
+                self.image = self.image_frames["jump"]
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
 
@@ -224,7 +238,7 @@ class Player(LivingBeing):
                 self.last_update = now
                 self.current_frame = (self.current_frame + 1) % 2
                 bottom = self.rect.bottom
-                direction = 'walkr' if self.vel.x > 0 else 'walkl'
+                direction = "walkr" if self.vel.x > 0 else "walkl"
                 self.image = self.image_frames[direction][self.current_frame]
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
@@ -234,7 +248,7 @@ class Player(LivingBeing):
                 self.last_update = now
                 self.current_frame = (self.current_frame + 1) % 2
                 bottom = self.rect.bottom
-                self.image = self.image_frames['stand'][self.current_frame]
+                self.image = self.image_frames["stand"][self.current_frame]
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
 
@@ -286,6 +300,7 @@ class Enemy(LivingBeing):
     Attributes:
         _layer (int): The layer where the enemy will be draw.
     """
+
     _layer = settings.ENEMIES_LAYER
 
     def __init__(self, *args, **kwargs):
@@ -299,10 +314,14 @@ class FlyMan(Enemy):
     Attributes:
         image_names (list): List of FlyMan image names.
     """
+
     image_names = [
-        'flyMan_fly.png', 'flyMan_jump.png',
-        'flyMan_stand.png', 'flyMan_still_fly.png',
-        'flyMan_still_jump.png', 'flyMan_still_stand.png'
+        "flyMan_fly.png",
+        "flyMan_jump.png",
+        "flyMan_stand.png",
+        "flyMan_still_fly.png",
+        "flyMan_still_jump.png",
+        "flyMan_still_stand.png",
     ]
 
     def __init__(self, game, images, pos, groups):
@@ -331,9 +350,11 @@ class FlyMan(Enemy):
         if self.vy > 3 or self.vy < -3:
             self.dy *= -1
 
-        if (self.rect.left > settings.WIDTH + 100
-                or self.rect.right < -100
-                or self.rect.top >= settings.HEIGHT):
+        if (
+            self.rect.left > settings.WIDTH + 100
+            or self.rect.right < -100
+            or self.rect.top >= settings.HEIGHT
+        ):
             self.kill()
         else:
             self.animate()

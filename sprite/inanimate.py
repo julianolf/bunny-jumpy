@@ -1,6 +1,8 @@
-import pygame
-import settings
 import random
+
+import pygame
+
+import settings
 
 
 class Inanimate(pygame.sprite.Sprite):
@@ -27,20 +29,28 @@ class Platform(Inanimate):
         image_names (list): List of image names that
                             will be render inside the sprite.
     """
+
     _layer = settings.PLATFORM_LAYER
     image_names = [
-        'ground_cake.png', 'ground_cake_broken.png',
-        'ground_cake_small.png', 'ground_cake_small_broken.png'
-        'ground_sand.png', 'ground_sand_broken.png',
-        'ground_sand_small.png', 'ground_sand_small_broken.png'
-        'ground_snow.png', 'ground_snow_broken.png',
-        'ground_snow_small.png', 'ground_snow_small_broken.png'
-        'ground_wood.png', 'ground_wood_broken.png',
-        'ground_wood_small.png', 'ground_wood_small_broken.png'
-        'ground_grass.png', 'ground_grass_broken.png',
-        'ground_grass_small.png', 'ground_grass_small_broken.png'
-        'ground_stone.png', 'ground_stone_broken.png',
-        'ground_stone_small.png', 'ground_stone_small_broken.png'
+        "ground_cake.png",
+        "ground_cake_broken.png",
+        "ground_cake_small.png",
+        "ground_cake_small_broken.png" "ground_sand.png",
+        "ground_sand_broken.png",
+        "ground_sand_small.png",
+        "ground_sand_small_broken.png" "ground_snow.png",
+        "ground_snow_broken.png",
+        "ground_snow_small.png",
+        "ground_snow_small_broken.png" "ground_wood.png",
+        "ground_wood_broken.png",
+        "ground_wood_small.png",
+        "ground_wood_small_broken.png" "ground_grass.png",
+        "ground_grass_broken.png",
+        "ground_grass_small.png",
+        "ground_grass_small_broken.png" "ground_stone.png",
+        "ground_stone_broken.png",
+        "ground_stone_small.png",
+        "ground_stone_small_broken.png",
     ]
 
     def __init__(self, image, pos=(0, 0), groups=[]):
@@ -79,8 +89,9 @@ class Spring(Inanimate):
         image_names (list): List of image names that
                             will be render inside the sprite.
     """
+
     _layer = settings.PLATFORM_LAYER
-    image_names = ['spring.png', 'spring_in.png', 'spring_out.png']
+    image_names = ["spring.png", "spring_in.png", "spring_out.png"]
 
     def __init__(self, images, platform, pos=(0, 0), groups=[]):
         """
@@ -144,8 +155,9 @@ class Cloud(Inanimate):
         _layer (int): The layer where the cloud will be draw.
         image_name (str): Cloud image name.
     """
+
     _layer = settings.CLOUD_LAYER
-    image_name = 'cloud.png'
+    image_name = "cloud.png"
 
     def __init__(self, image, pos=(0, 0), groups=[]):
         """

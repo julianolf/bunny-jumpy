@@ -1,6 +1,8 @@
-import pygame
-import settings
 from xml.dom import minidom
+
+import pygame
+
+import settings
 
 
 class Spritesheet(object):
@@ -13,7 +15,7 @@ class Spritesheet(object):
         """
         super(Spritesheet, self).__init__()
         self.image = pygame.image.load(file_name).convert()
-        self.info = minidom.parse(file_name.replace('.png', '.xml'))
+        self.info = minidom.parse(file_name.replace(".png", ".xml"))
         self.color_key = color_key
 
     def get_info(self, image_name):
@@ -34,16 +36,19 @@ class Spritesheet(object):
         Raises:
             ValueError: If no entry was found for image_name.
         """
-        nodes = self.info.getElementsByTagName('SubTexture')
+        nodes = self.info.getElementsByTagName("SubTexture")
         for node in nodes:
-            if node.getAttribute('name') == image_name:
-                return map(int, (
-                    node.getAttribute('x'),
-                    node.getAttribute('y'),
-                    node.getAttribute('width'),
-                    node.getAttribute('height')
-                ))
-        raise ValueError(f'{image_name} not found in spritesheet.')
+            if node.getAttribute("name") == image_name:
+                return map(
+                    int,
+                    (
+                        node.getAttribute("x"),
+                        node.getAttribute("y"),
+                        node.getAttribute("width"),
+                        node.getAttribute("height"),
+                    ),
+                )
+        raise ValueError(f"{image_name} not found in spritesheet.")
 
     def get_image(self, image_name):
         """Get image by name.
@@ -57,6 +62,8 @@ class Spritesheet(object):
         x, y, width, height = self.get_info(image_name)
         image = pygame.Surface((width, height))
         image.blit(self.image, (0, 0), (x, y, width, height))
-        image = pygame.transform.scale(image, (width * 2//5, height * 2//5))
+        image = pygame.transform.scale(
+            image, (width * 2 // 5, height * 2 // 5)
+        )
         image.set_colorkey(self.color_key)
         return image

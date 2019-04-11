@@ -1,4 +1,5 @@
 import pygame
+
 import settings
 
 
@@ -8,6 +9,7 @@ class Item(pygame.sprite.Sprite):
     Attributes:
         layer (int): The layer where the item will be draw.
     """
+
     _layer = settings.ITEMS_LAYER
 
     def __init__(self, image, platform, groups):
@@ -49,7 +51,8 @@ class Carrot(Item):
     Attributes:
         image_name (str): Image name for the carrot.
     """
-    image_name = 'carrot.png'
+
+    image_name = "carrot.png"
 
     def __init__(self, image, platform=None, groups=[]):
         """
@@ -80,7 +83,8 @@ class Jetpack(Powerup):
     Attributes:
         image_name (str): Image name for the jetpack.
     """
-    image_name = 'powerup_jetpack.png'
+
+    image_name = "powerup_jetpack.png"
 
     def __init__(self, image, platform=None, groups=[]):
         """
