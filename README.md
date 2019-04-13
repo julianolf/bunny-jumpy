@@ -1,5 +1,6 @@
 # Bunny Jumpy
-[![Dependabot Status][dependabot-status]][dependabot] [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![License: MIT](https://img.shields.io/github/license/julianolf/bunny-jumpy.svg)](https://opensource.org/licenses/MIT)
+[![Dependabot: enabled](https://img.shields.io/badge/Dependabot-enabled-brightgreen.svg?logo=dependabot)](https://dependabot.com) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![License: MIT](https://img.shields.io/github/license/julianolf/bunny-jumpy.svg)](https://opensource.org/licenses/MIT)
+
 A platform game written in Python.
 
 ## Installing
