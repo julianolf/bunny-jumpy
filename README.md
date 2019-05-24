@@ -1,5 +1,5 @@
 # Bunny Jumpy
-[![Dependabot: enabled](https://img.shields.io/badge/Dependabot-enabled-brightgreen.svg?logo=dependabot)](https://dependabot.com) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![License: MIT](https://img.shields.io/github/license/julianolf/bunny-jumpy.svg)](https://opensource.org/licenses/MIT)
+[![Updates](https://pyup.io/repos/github/julianolf/bunny-jumpy/shield.svg)](https://pyup.io/repos/github/julianolf/bunny-jumpy/) [![Python 3](https://pyup.io/repos/github/julianolf/bunny-jumpy/python-3-shield.svg)](https://pyup.io/repos/github/julianolf/bunny-jumpy/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![License: MIT](https://img.shields.io/github/license/julianolf/bunny-jumpy.svg)](https://opensource.org/licenses/MIT)
 
 A platform game written in Python.
 
